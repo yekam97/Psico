@@ -1,0 +1,138 @@
+// Prisma Schema for Psychology SaaS (Multi-tenant)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  PSYCHOLOGIST
+  PATIENT
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NOSHOW
+}
+
+enum AppointmentType {
+  IN_PERSON
+  VIRTUAL
+}
+
+model Company {
+  id              String      @id @default(cuid())
+  name            String
+  domain          String      @unique // e.g. "minerva"
+  logoUrl         String?
+  primaryColor    String      @default("#24343B")
+  secondaryColor  String      @default("#EBA554")
+  tertiaryColor   String      @default("#948472")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  users           User[]
+  appointments    Appointment[]
+  clinicalNotes   ClinicalNote[]
+  waitlistEntries Waitlist[]
+  availabilities  Availability[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  role          Role      @default(PATIENT)
+  name          String?
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  profile       Profile?
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  phone           String?
+  specialty       String?   // For Psychologists
+  bio             String?   // For Psychologists
+  patientNotes    ClinicalNote[] @relation("PatientNotes")
+  doctorNotes     ClinicalNote[] @relation("DoctorNotes")
+  appointments    Appointment[]  @relation("PatientAppointments")
+  doctorEvents    Appointment[]  @relation("DoctorAppointments")
+  availabilities  Availability[]
+  waitlistEntries Waitlist[]
+  hasConsented    Boolean   @default(false)
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id])
+  patientId       String
+  patient         Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
+  psychologistId  String
+  psychologist    Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
+  startTime       DateTime
+  endTime         DateTime
+  status          AppointmentStatus @default(SCHEDULED)
+  type            AppointmentType   @default(IN_PERSON)
+  meetingLink     String?           // Google Meet URL
+  googleEventId   String?           // For Sync
+  notes           String?           // General appointment notes
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Availability {
+  id              String    @id @default(cuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  psychologistId  String
+  psychologist    Profile   @relation(fields: [psychologistId], references: [id])
+  dayOfWeek       Int       // 0-6 (Sunday-Saturday)
+  startTime       String    // "08:00"
+  endTime         String    // "17:00"
+  isActive        Boolean   @default(true)
+}
+
+model ClinicalNote {
+  id              String    @id @default(cuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  patientId       String
+  patient         Profile   @relation("PatientNotes", fields: [patientId], references: [id])
+  psychologistId  String
+  psychologist    Profile   @relation("DoctorNotes", fields: [psychologistId], references: [id])
+  content         String    // Should be encrypted in production
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Waitlist {
+  id              String    @id @default(cuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  patientId       String
+  patient         Profile   @relation(fields: [patientId], references: [id])
+  psychologistId  String
+  preferredDate   DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+model Consent {
+  id              String    @id @default(cuid())
+  userId          String
+  acceptedAt      DateTime  @default(now())
+  ipAddress       String?
+  version         String    // e.g., "1.0"
+}
