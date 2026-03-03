@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
                 const demoUser = demoUsers.find(u => u.email === credentials.email && u.password === credentials.password);
                 if (demoUser) return demoUser;
 
-                // If not demo, try Prisma
+                // Try Prisma if demo fails
                 try {
                     const user = await prisma.user.findUnique({
                         where: { email: credentials.email },
@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
                         };
                     }
                 } catch (e) {
-                    console.warn("Prisma connection not available, but demo accounts are working.");
+                    console.error("Prisma connection error:", e);
                 }
 
                 return null;
