@@ -1,12 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  try {
-    return new PrismaClient();
-  } catch (error) {
-    console.warn("Prisma Client could not be initialized. Using demo-only mode.");
-    return null as any;
-  }
+  return new PrismaClient();
 };
 
 declare global {

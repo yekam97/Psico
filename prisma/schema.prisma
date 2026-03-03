@@ -101,7 +101,7 @@ model Availability {
   psychologist    Profile   @relation(fields: [psychologistId], references: [id])
   dayOfWeek       Int       // 0-6 (Sunday-Saturday)
   startTime       String    // "08:00"
-  endTime         String    // "17:00"
+  endTime       String    // "17:00"
   isActive        Boolean   @default(true)
 }
 
