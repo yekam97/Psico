@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const companyId = (session.user as any).companyId;
 
     try {
-        const patients = await prisma.user.findMany({
+        const patients = await (prisma as any).user.findMany({
             where: {
                 companyId,
                 role: "PATIENT"
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
                 }
             },
             orderBy: { name: "asc" }
-        });
+        }) as any[];
 
         const therapyList = patients.map(user => ({
             id: user.id,
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
                 totalAssigned: user.profile.therapyInventory.totalAssigned,
                 remaining: user.profile.therapyInventory.remaining,
             } : null,
-            reservedCount: user.profile?.appointments.length || 0
+            reservedCount: user.profile?.appointments?.length || 0
         }));
 
         return NextResponse.json(therapyList);
