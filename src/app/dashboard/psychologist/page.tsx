@@ -17,6 +17,7 @@ import {
 import axios from "axios";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 
 const WELLBEING_TIPS = [
     "La autocompasión es el primer paso hacia la sanación. Trátate con la misma amabilidad que tratarías a un buen amigo.",
@@ -43,25 +44,27 @@ export default function PsychologistDashboard() {
             setData(response.data);
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
+            toast.error("Error al cargar la agenda");
         } finally {
             setLoading(false);
         }
     };
 
     const handleStatusUpdate = async (id: string, status: string, reason?: string) => {
-        setUpdatingStatus(id);
-        try {
-            await axios.patch("/api/appointments/status", {
-                id,
-                status,
-                cancellationReason: reason
-            });
-            fetchDashboardData();
-        } catch (error) {
-            alert("Error al actualizar la cita");
-        } finally {
-            setUpdatingStatus(null);
-        }
+        const promise = axios.patch("/api/appointments/status", {
+            id,
+            status,
+            cancellationReason: reason
+        });
+
+        toast.promise(promise, {
+            loading: 'Actualizando cita...',
+            success: () => {
+                fetchDashboardData();
+                return status === 'COMPLETED' ? 'Sesión completada y descontada' : 'Cita cancelada correctamente';
+            },
+            error: (err) => err.response?.data?.error || "Error al actualizar la cita"
+        });
     };
 
     if (loading) {

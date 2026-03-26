@@ -17,6 +17,7 @@ import {
     Activity
 } from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 
 interface UserProfile {
     id: string;
@@ -48,8 +49,11 @@ export default function AdminUsersPage() {
     const [roleFilter, setRoleFilter] = useState("ALL");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTherapyModalOpen, setIsTherapyModalOpen] = useState(false);
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     // Therapy form state
     const [therapyData, setTherapyData] = useState({
@@ -111,12 +115,16 @@ export default function AdminUsersPage() {
 
     const handleDelete = async (id: string) => {
         if (!confirm("¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.")) return;
-        try {
-            await axios.delete(`/api/admin/users/${id}`);
-            fetchUsers();
-        } catch (error) {
-            alert("Error al eliminar usuario");
-        }
+
+        const promise = axios.delete(`/api/admin/users/${id}`);
+        toast.promise(promise, {
+            loading: 'Eliminando usuario...',
+            success: () => {
+                fetchUsers();
+                return 'Usuario eliminado correctamente';
+            },
+            error: 'Error al eliminar usuario'
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -125,13 +133,15 @@ export default function AdminUsersPage() {
         try {
             if (editingUser) {
                 await axios.put(`/api/admin/users/${editingUser.id}`, formData);
+                toast.success("Usuario actualizado");
             } else {
                 await axios.post("/api/admin/users", formData);
+                toast.success("Usuario creado correctamente");
             }
             setIsModalOpen(false);
             fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Error al procesar solicitud");
+            toast.error(error.response?.data?.error || "Error al procesar solicitud");
         } finally {
             setSubmitting(false);
         }
@@ -147,13 +157,28 @@ export default function AdminUsersPage() {
                 amount: therapyData.amount,
                 notes: therapyData.notes
             });
+            toast.success("Inventario de terapias actualizado");
             setIsTherapyModalOpen(false);
             setTherapyData({ amount: 1, notes: "" });
             fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Error al actualizar terapias");
+            toast.error(error.response?.data?.error || "Error al actualizar terapias");
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleHistoryOpen = async (patientId: string) => {
+        setIsHistoryModalOpen(true);
+        setLoadingHistory(true);
+        setHistoryData([]);
+        try {
+            const response = await axios.get(`/api/admin/therapy/history/${patientId}`);
+            setHistoryData(response.data);
+        } catch (error) {
+            toast.error("Error al cargar historial");
+        } finally {
+            setLoadingHistory(false);
         }
     };
 
@@ -257,26 +282,40 @@ export default function AdminUsersPage() {
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 {user.role === "PATIENT" && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setEditingUser(user);
-                                                            setIsTherapyModalOpen(true);
-                                                        }}
-                                                        className="text-gray-400 hover:text-secondary transition-colors p-2"
-                                                        title="Gestionar Terapias"
-                                                    >
-                                                        <Activity size={18} />
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingUser(user);
+                                                                handleHistoryOpen(user.profile?.id!);
+                                                            }}
+                                                            className="text-gray-400 hover:text-primary transition-colors p-2"
+                                                            title="Ver Historial"
+                                                        >
+                                                            <CalendarIcon size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingUser(user);
+                                                                setIsTherapyModalOpen(true);
+                                                            }}
+                                                            className="text-gray-400 hover:text-secondary transition-colors p-2"
+                                                            title="Gestionar Terapias"
+                                                        >
+                                                            <Activity size={18} />
+                                                        </button>
+                                                    </>
                                                 )}
                                                 <button
                                                     onClick={() => handleOpenModal(user)}
                                                     className="text-gray-400 hover:text-primary transition-colors p-2"
+                                                    title="Editar"
                                                 >
                                                     <Edit2 size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(user.id)}
                                                     className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                                                    title="Eliminar"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -295,171 +334,217 @@ export default function AdminUsersPage() {
                 </div>
             </div>
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+            {/* History Modal */}
+            {isHistoryModalOpen && editingUser && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] flex items-center justify-end">
+                    <div className="bg-white w-full max-w-md h-full shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
                         <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h3 className="text-xl font-bold text-gray-800">
-                                {editingUser ? "Editar Usuario" : "Crear Nuevo Usuario"}
-                            </h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800">Historial de Terapias</h3>
+                                <p className="text-xs text-gray-500">{editingUser.name}</p>
+                            </div>
+                            <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                                 <X size={24} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Nombre Completo</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    />
+                        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                            {loadingHistory ? (
+                                <div className="flex justify-center py-20">
+                                    <Loader2 className="animate-spin text-primary" size={40} />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ) : historyData.length === 0 ? (
+                                <p className="text-center text-gray-400 py-20">No hay transacciones registradas.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {historyData.map((t: any) => (
+                                        <div key={t.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${t.amount > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                                                }`}>
+                                                {t.amount > 0 ? `+${t.amount}` : t.amount}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-gray-800 uppercase tracking-tight">{t.type.replace('_', ' ')}</p>
+                                                <p className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                                                {t.notes && <p className="text-xs text-gray-500 mt-1 italic">"{t.notes}"</p>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal */}
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 className="text-xl font-bold text-gray-800">
+                                    {editingUser ? "Editar Usuario" : "Crear Nuevo Usuario"}
+                                </h3>
+                                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Email</label>
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Nombre Completo</label>
                                         <input
                                             required
-                                            type="email"
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Teléfono</label>
-                                        <input
                                             type="text"
                                             className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         />
                                     </div>
-                                </div>
-                                {!editingUser && (
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Password</label>
-                                        <input
-                                            required={!editingUser}
-                                            type="password"
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
-                                            placeholder="••••••••"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        />
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Rol</label>
-                                    <select
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
-                                        value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                                    >
-                                        <option value="PATIENT">Paciente</option>
-                                        <option value="PSYCHOLOGIST">Psicólogo</option>
-                                        <option value="ADMIN">Administrador</option>
-                                    </select>
-                                </div>
-
-                                {formData.role === "PATIENT" && (
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Asignar Psicólogos (Máx 2)</label>
-                                        <div className="space-y-2 max-h-40 overflow-y-auto p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                            {psychologists.map(p => (
-                                                <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer group">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="size-5 rounded-md border-gray-300 text-primary focus:ring-primary accent-primary"
-                                                        checked={formData.psychologistIds.includes(p.id)}
-                                                        onChange={(e) => {
-                                                            const ids = e.target.checked
-                                                                ? [...formData.psychologistIds, p.id].slice(0, 2)
-                                                                : formData.psychologistIds.filter(id => id !== p.id);
-                                                            setFormData({ ...formData, psychologistIds: ids });
-                                                        }}
-                                                    />
-                                                    <span className="text-sm text-gray-700 group-hover:text-primary font-medium">{p.name || p.email}</span>
-                                                </label>
-                                            ))}
-                                            {psychologists.length === 0 && <p className="text-xs text-gray-400">No hay psicólogos registrados</p>}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Email</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Teléfono</label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            />
                                         </div>
                                     </div>
-                                )}
+                                    {!editingUser && (
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Password</label>
+                                            <input
+                                                required={!editingUser}
+                                                type="password"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                placeholder="••••••••"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Rol</label>
+                                        <select
+                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                            value={formData.role}
+                                            onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                                        >
+                                            <option value="PATIENT">Paciente</option>
+                                            <option value="PSYCHOLOGIST">Psicólogo</option>
+                                            <option value="ADMIN">Administrador</option>
+                                        </select>
+                                    </div>
+
+                                    {formData.role === "PATIENT" && (
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Asignar Psicólogos (Máx 2)</label>
+                                            <div className="space-y-2 max-h-40 overflow-y-auto p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                {psychologists.map(p => (
+                                                    <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="size-5 rounded-md border-gray-300 text-primary focus:ring-primary accent-primary"
+                                                            checked={formData.psychologistIds.includes(p.id)}
+                                                            onChange={(e) => {
+                                                                const ids = e.target.checked
+                                                                    ? [...formData.psychologistIds, p.id].slice(0, 2)
+                                                                    : formData.psychologistIds.filter(id => id !== p.id);
+                                                                setFormData({ ...formData, psychologistIds: ids });
+                                                            }}
+                                                        />
+                                                        <span className="text-sm text-gray-700 group-hover:text-primary font-medium">{p.name || p.email}</span>
+                                                    </label>
+                                                ))}
+                                                {psychologists.length === 0 && <p className="text-xs text-gray-400">No hay psicólogos registrados</p>}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="pt-6">
+                                    <button
+                                        disabled={submitting}
+                                        type="submit"
+                                        className="w-full bg-primary text-white py-5 rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {submitting && <Loader2 className="animate-spin" size={20} />}
+                                        {editingUser ? "Guardar Cambios" : "Crear Usuario"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Therapy Modal */}
+            {
+                isTherapyModalOpen && editingUser && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-secondary/5">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800">Gestionar Terapias</h3>
+                                    <p className="text-xs text-gray-500">{editingUser.name}</p>
+                                </div>
+                                <button onClick={() => setIsTherapyModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={24} />
+                                </button>
                             </div>
-                            <div className="pt-6">
+                            <form onSubmit={handleTherapySubmit} className="p-8 space-y-6">
+                                <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex justify-between items-center">
+                                    <span className="text-sm font-medium text-gray-600">Saldo Actual:</span>
+                                    <span className="text-2xl font-bold text-primary">{editingUser.profile?.therapyInventory?.remaining || 0}</span>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Cantidad a Sumar</label>
+                                    <input
+                                        required
+                                        type="number"
+                                        min="1"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-xl font-bold text-center"
+                                        value={therapyData.amount}
+                                        onChange={(e) => setTherapyData({ ...therapyData, amount: parseInt(e.target.value) })}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Notas / Concepto</label>
+                                    <textarea
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
+                                        placeholder="Ej: Compra de paquete 10 sesiones"
+                                        value={therapyData.notes}
+                                        onChange={(e) => setTherapyData({ ...therapyData, notes: e.target.value })}
+                                    />
+                                </div>
+
                                 <button
                                     disabled={submitting}
                                     type="submit"
-                                    className="w-full bg-primary text-white py-5 rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="w-full bg-secondary text-primary-dark py-5 rounded-2xl font-bold hover:bg-secondary-light transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {submitting && <Loader2 className="animate-spin" size={20} />}
-                                    {editingUser ? "Guardar Cambios" : "Crear Usuario"}
+                                    Actualizar Inventario
                                 </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Therapy Modal */}
-            {isTherapyModalOpen && editingUser && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
-                        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-secondary/5">
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800">Gestionar Terapias</h3>
-                                <p className="text-xs text-gray-500">{editingUser.name}</p>
-                            </div>
-                            <button onClick={() => setIsTherapyModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
-                            </button>
+                            </form>
                         </div>
-                        <form onSubmit={handleTherapySubmit} className="p-8 space-y-6">
-                            <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-600">Saldo Actual:</span>
-                                <span className="text-2xl font-bold text-primary">{editingUser.profile?.therapyInventory?.remaining || 0}</span>
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Cantidad a Sumar</label>
-                                <input
-                                    required
-                                    type="number"
-                                    min="1"
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-xl font-bold text-center"
-                                    value={therapyData.amount}
-                                    onChange={(e) => setTherapyData({ ...therapyData, amount: parseInt(e.target.value) })}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Notas / Concepto</label>
-                                <textarea
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
-                                    placeholder="Ej: Compra de paquete 10 sesiones"
-                                    value={therapyData.notes}
-                                    onChange={(e) => setTherapyData({ ...therapyData, notes: e.target.value })}
-                                />
-                            </div>
-
-                            <button
-                                disabled={submitting}
-                                type="submit"
-                                className="w-full bg-secondary text-primary-dark py-5 rounded-2xl font-bold hover:bg-secondary-light transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {submitting && <Loader2 className="animate-spin" size={20} />}
-                                Actualizar Inventario
-                            </button>
-                        </form>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 
