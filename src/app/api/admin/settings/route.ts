@@ -11,6 +11,10 @@ export async function GET() {
     }
 
     const companyId = (session.user as any).companyId;
+    if (!companyId) {
+        console.error("Admin settings requested but no companyId in session.");
+        return NextResponse.json({ error: "No company associated with this account" }, { status: 400 });
+    }
 
     try {
         const company = await prisma.company.findUnique({
@@ -25,10 +29,15 @@ export async function GET() {
             }
         });
 
+        if (!company) {
+            console.error(`Company not found in database: ${companyId}`);
+            return NextResponse.json({ error: "Centro no encontrado en la base de datos" }, { status: 404 });
+        }
+
         return NextResponse.json(company);
     } catch (error) {
         console.error("Error fetching settings:", error);
-        return NextResponse.json({ error: "Error fetching settings" }, { status: 500 });
+        return NextResponse.json({ error: "Error interno al consultar configuración", message: (error as any).message }, { status: 500 });
     }
 }
 
@@ -40,12 +49,26 @@ export async function PUT(req: NextRequest) {
     }
 
     const companyId = (session.user as any).companyId;
+    if (!companyId) {
+        return NextResponse.json({ error: "No companyId found" }, { status: 400 });
+    }
+
     const { logoUrl, primaryColor, secondaryColor, tertiaryColor, businessHours } = await req.json();
 
     try {
-        const updatedCompany = await prisma.company.update({
+        const updatedCompany = await prisma.company.upsert({
             where: { id: companyId },
-            data: {
+            update: {
+                logoUrl,
+                primaryColor,
+                secondaryColor,
+                tertiaryColor,
+                businessHours
+            },
+            create: {
+                id: companyId,
+                name: "Mi Centro",
+                domain: companyId,
                 logoUrl,
                 primaryColor,
                 secondaryColor,
@@ -57,6 +80,6 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json(updatedCompany);
     } catch (error) {
         console.error("Error updating settings:", error);
-        return NextResponse.json({ error: "Error updating settings" }, { status: 500 });
+        return NextResponse.json({ error: "Error al actualizar configuración", message: (error as any).message }, { status: 500 });
     }
 }
