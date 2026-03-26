@@ -57,6 +57,28 @@ export default function AdminDashboard() {
         fetchData();
     }, []);
 
+    const handleExport = () => {
+        if (!reports) return;
+        const csvContent = [
+            ["Categoria", "Valor"],
+            ["Citas Virtuales", reports.virtual],
+            ["Citas Presenciales", reports.inPerson],
+            ["Cancelaciones Totales", reports.totalCancelled],
+            ["", ""],
+            ["Detalle de Cancelaciones", "Motivo"],
+            ...reports.cancellationDetails.map((c: any) => [`${c.patient} - ${c.psychologist}`, c.reason])
+        ].map(e => e.join(",")).join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `reporte_semanal_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center py-40">
@@ -212,7 +234,10 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="w-full bg-primary text-white py-3 md:py-4 rounded-xl md:rounded-2xl font-medium mt-2 hover:bg-primary-light transition-all text-sm md:text-base">
+                            <button
+                                onClick={handleExport}
+                                className="w-full bg-primary text-white py-3 md:py-4 rounded-xl md:rounded-2xl font-medium mt-2 hover:bg-primary-light transition-all text-sm md:text-base"
+                            >
                                 Descargar Detalle
                             </button>
                         </div>
