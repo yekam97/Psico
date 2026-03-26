@@ -133,7 +133,18 @@ export default function BookAppointmentPage() {
                             ))}
                         </div>
 
-                                </div>
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-gray-700">Horarios Disponibles para hoy, {new Date().toLocaleDateString()}</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                                {timeSlots.map((time) => (
+                                    <button
+                                        key={time}
+                                        type="button"
+                                        className="py-3 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-all text-sm font-medium bg-gray-50 hover:bg-white"
+                                    >
+                                        {time}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
@@ -146,7 +157,7 @@ export default function BookAppointmentPage() {
                                     const date = new Date().toISOString().split('T')[0];
                                     await axios.post("/api/patient/appointments", {
                                         psychologistId: selectedDoc.profile?.id,
-                                        startTime: `${date}T${time.replace(" AM", ":00").replace(" PM", ":00")}`,
+                                        startTime: `${date}T${time}:00`,
                                         type: modality,
                                         notes: "Cita agendada por el paciente"
                                     });
@@ -164,40 +175,37 @@ export default function BookAppointmentPage() {
                         </button>
 
                         <button onClick={() => setStep(1)} className="text-sm text-primary hover:underline font-medium block mx-auto">Volver a Profesionales</button>
-                    </div >
-                )
-}
+                    </div>
+                )}
 
-{
-    step === 3 && (
-        <div className="text-center py-12 space-y-6">
-            <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 scale-up-center">
-                <CheckCircle2 size={48} />
+                {step === 3 && (
+                    <div className="text-center py-12 space-y-6">
+                        <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 scale-up-center">
+                            <CheckCircle2 size={48} />
+                        </div>
+                        <h2 className="text-3xl font-light text-gray-800">¡Cita Programada!</h2>
+                        <div className="bg-gray-50 p-6 rounded-3xl max-w-sm mx-auto text-left">
+                            <p className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Detalles de la Cita</p>
+                            <p className="font-bold text-gray-800">{selectedDoc?.name}</p>
+                            <p className="text-sm text-primary font-medium mt-1">Hoy, 09:00 AM</p>
+                            <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+                                {modality === 'VIRTUAL' ? <Video size={14} /> : <MapPin size={14} />}
+                                {modality === 'VIRTUAL' ? 'Virtual (Link enviado por Email)' : 'Presencial (Sede Centro)'}
+                            </p>
+                        </div>
+                        <div className="pt-8">
+                            <button
+                                onClick={() => router.push("/dashboard/patient")}
+                                className="bg-primary text-white px-8 py-4 rounded-2xl font-medium shadow-lg hover:bg-primary-dark transition-all"
+                            >
+                                Ir a mis citas
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
-            <h2 className="text-3xl font-light text-gray-800">¡Cita Programada!</h2>
-            <div className="bg-gray-50 p-6 rounded-3xl max-w-sm mx-auto text-left">
-                <p className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Detalles de la Cita</p>
-                <p className="font-bold text-gray-800">{selectedDoc?.name}</p>
-                <p className="text-sm text-primary font-medium mt-1">Hoy, 04:00 PM</p>
-                <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                    {modality === 'VIRTUAL' ? <Video size={14} /> : <MapPin size={14} />}
-                    {modality === 'VIRTUAL' ? 'Virtual (Link enviado por Email)' : 'Presencial (Sede Norte)'}
-                </p>
-            </div>
-            <div className="pt-8">
-                <button
-                    onClick={() => router.push("/dashboard/patient")}
-                    className="bg-primary text-white px-8 py-4 rounded-2xl font-medium shadow-lg hover:bg-primary-dark transition-all"
-                >
-                    Ir a mis citas
-                </button>
-            </div>
-        </div>
-    )
-}
-            </div >
 
-    <style jsx>{`
+            <style jsx>{`
         .scale-up-center {
           animation: scale-up-center 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
         }

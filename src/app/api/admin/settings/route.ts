@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     try {
-        const company = await prisma.company.findUnique({
+        const company = await (prisma.company as any).findUnique({
             where: { id: companyId },
             select: {
                 name: true,
@@ -57,7 +57,7 @@ export async function PUT(req: NextRequest) {
     const { logoUrl, primaryColor, secondaryColor, tertiaryColor, businessHours, physicalRooms } = await req.json();
 
     try {
-        const updatedCompany = await prisma.company.upsert({
+        const updatedCompany = await (prisma.company as any).upsert({
             where: { id: companyId },
             update: {
                 logoUrl,
@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest) {
                 secondaryColor,
                 tertiaryColor,
                 businessHours,
-                physicalRooms: physicalRooms ? parseInt(physicalRooms) : undefined
+                physicalRooms: physicalRooms ? parseInt(physicalRooms as any) : undefined
             },
             create: {
                 id: companyId,
@@ -76,7 +76,7 @@ export async function PUT(req: NextRequest) {
                 secondaryColor,
                 tertiaryColor,
                 businessHours,
-                physicalRooms: physicalRooms ? parseInt(physicalRooms) : 1
+                physicalRooms: physicalRooms ? parseInt(physicalRooms as any) : 1
             }
         });
 

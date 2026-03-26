@@ -24,12 +24,12 @@ export async function POST(req: NextRequest) {
 
         // Room Availability Check for IN_PERSON appointments
         if (type === "IN_PERSON") {
-            const company = await prisma.company.findUnique({
+            const company = await (prisma.company as any).findUnique({
                 where: { id: companyId },
                 select: { physicalRooms: true }
             });
 
-            const roomsCount = company?.physicalRooms || 1;
+            const roomsCount = (company as any)?.physicalRooms || 1;
 
             const concurrentAppointments = await (prisma as any).appointment.count({
                 where: {
