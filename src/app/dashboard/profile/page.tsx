@@ -156,27 +156,29 @@ export default function ProfilePage() {
                         </div>
                     </form>
 
-                    {/* Additional Settings */}
-                    <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
-                        <h3 className="text-xl font-medium text-gray-800">Notificaciones</h3>
-                        <div className="space-y-4">
-                            {[
-                                { label: "Recordatorios de citas (Email)", desc: "Recibe un correo 24 horas antes." },
-                                { label: "Alertas vía WhatsApp", desc: "Notificaciones directas a tu móvil." },
-                                { label: "Boletín de salud mental", desc: "Consejos semanales de nuestros expertos." }
-                            ].map((pref, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors">
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-800">{pref.label}</p>
-                                        <p className="text-xs text-gray-400">{pref.desc}</p>
+                    {/* Additional Settings - Only for Psychologists and Patients */}
+                    {role !== "ADMIN" && (
+                        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
+                            <h3 className="text-xl font-medium text-gray-800">Notificaciones</h3>
+                            <div className="space-y-4">
+                                {[
+                                    { label: "Recordatorios de citas (Email)", desc: "Recibe un correo 24 horas antes." },
+                                    { label: "Alertas vía WhatsApp", desc: "Notificaciones directas a tu móvil." },
+                                    { label: "Boletín de salud mental", desc: "Consejos semanales de nuestros expertos." }
+                                ].map((pref, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-800">{pref.label}</p>
+                                            <p className="text-xs text-gray-400">{pref.desc}</p>
+                                        </div>
+                                        <div className="w-12 h-6 bg-primary rounded-full p-1 relative cursor-pointer">
+                                            <div className="w-4 h-4 bg-white rounded-full absolute right-1 shadow-sm" />
+                                        </div>
                                     </div>
-                                    <div className="w-12 h-6 bg-primary rounded-full p-1 relative cursor-pointer">
-                                        <div className="w-4 h-4 bg-white rounded-full absolute right-1 shadow-sm" />
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

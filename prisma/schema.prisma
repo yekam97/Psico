@@ -27,6 +27,13 @@ enum AppointmentType {
   VIRTUAL
 }
 
+enum TherapyTransactionType {
+  PURCHASE
+  SESSION_COMPLETED
+  ADMIN_ADJUSTMENT
+  REFUND
+}
+
 model Company {
   id              String      @id @default(cuid())
   name            String
@@ -35,6 +42,7 @@ model Company {
   primaryColor    String      @default("#24343B")
   secondaryColor  String      @default("#EBA554")
   tertiaryColor   String      @default("#948472")
+  businessHours   Json?       // { "mon": {"open": "08:00", "close": "18:00"}, ... }
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   
@@ -65,32 +73,75 @@ model Profile {
   phone           String?
   specialty       String?   // For Psychologists
   bio             String?   // For Psychologists
+  
+  // Relations
   patientNotes    ClinicalNote[] @relation("PatientNotes")
   doctorNotes     ClinicalNote[] @relation("DoctorNotes")
   appointments    Appointment[]  @relation("PatientAppointments")
   doctorEvents    Appointment[]  @relation("DoctorAppointments")
   availabilities  Availability[]
   waitlistEntries Waitlist[]
+  
+  // Patient Assignments (Max 2)
+  assignedPsychologists PatientPsychologist[] @relation("PatientAssignments")
+  assignedPatients      PatientPsychologist[] @relation("PsychologistAssignments")
+  
+  // Therapy Balance
+  therapyInventory TherapyInventory?
+  
   hasConsented    Boolean   @default(false)
 }
 
+model PatientPsychologist {
+  id             String   @id @default(cuid())
+  patientId      String
+  psychologistId String
+  patient        Profile  @relation("PatientAssignments", fields: [patientId], references: [id])
+  psychologist   Profile  @relation("PsychologistAssignments", fields: [psychologistId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@unique([patientId, psychologistId])
+}
+
 model Appointment {
-  id              String            @id @default(cuid())
-  companyId       String
-  company         Company           @relation(fields: [companyId], references: [id])
-  patientId       String
-  patient         Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
-  psychologistId  String
-  psychologist    Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
-  startTime       DateTime
-  endTime         DateTime
-  status          AppointmentStatus @default(SCHEDULED)
-  type            AppointmentType   @default(IN_PERSON)
-  meetingLink     String?           // Google Meet URL
-  googleEventId   String?           // For Sync
-  notes           String?           // General appointment notes
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                 String            @id @default(cuid())
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id])
+  patientId          String
+  patient            Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
+  psychologistId     String
+  psychologist       Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
+  startTime          DateTime
+  endTime            DateTime
+  status             AppointmentStatus @default(SCHEDULED)
+  type               AppointmentType   @default(IN_PERSON)
+  meetingLink        String?           // Google Meet URL
+  googleEventId      String?           // For Sync
+  notes              String?           // General appointment notes
+  cancellationReason String?           // Added for reporting
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model TherapyInventory {
+  id              String   @id @default(cuid())
+  patientId       String   @unique
+  patient         Profile  @relation(fields: [patientId], references: [id])
+  totalAssigned   Int      @default(0) // Total historical
+  remaining       Int      @default(0) // Available to use
+  history         TherapyTransaction[]
+  updatedAt       DateTime @updatedAt
+}
+
+model TherapyTransaction {
+  id              String   @id @default(cuid())
+  inventoryId     String
+  inventory       TherapyInventory @relation(fields: [inventoryId], references: [id])
+  amount          Int      // + for added, - for used
+  type            TherapyTransactionType
+  appointmentId   String?  // If it was a session
+  notes           String?
+  createdAt       DateTime @default(now())
 }
 
 model Availability {
@@ -101,7 +152,7 @@ model Availability {
   psychologist    Profile   @relation(fields: [psychologistId], references: [id])
   dayOfWeek       Int       // 0-6 (Sunday-Saturday)
   startTime       String    // "08:00"
-  endTime       String    // "17:00"
+  endTime         String    // "17:00"
   isActive        Boolean   @default(true)
 }
 
