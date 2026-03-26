@@ -195,8 +195,11 @@ export default function AdminSettingsPage() {
                                     type="number"
                                     min="1"
                                     className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 focus:bg-white focus:border-primary/20 outline-none text-sm transition-all"
-                                    value={branding.physicalRooms}
-                                    onChange={(e) => setBranding({ ...branding, physicalRooms: parseInt(e.target.value) || 1 })}
+                                    value={branding.physicalRooms || ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setBranding({ ...branding, physicalRooms: val === "" ? 0 : parseInt(val) });
+                                    }}
                                 />
                                 <p className="text-[10px] text-gray-400 mt-2 italic">Capacidad máxima para citas presenciales simultáneas.</p>
                             </div>

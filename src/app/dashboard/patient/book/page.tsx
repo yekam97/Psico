@@ -156,7 +156,7 @@ export default function BookAppointmentPage() {
                                     const time = "09:00"; // Should be selected from slots
                                     const date = new Date().toISOString().split('T')[0];
                                     await axios.post("/api/patient/appointments", {
-                                        psychologistId: selectedDoc.profile?.id,
+                                        psychologistId: selectedDoc.id,
                                         startTime: `${date}T${time}:00`,
                                         type: modality,
                                         notes: "Cita agendada por el paciente"
