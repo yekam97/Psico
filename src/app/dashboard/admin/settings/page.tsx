@@ -188,6 +188,18 @@ export default function AdminSettingsPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="pt-4 border-t border-gray-100/50">
+                                <label className="text-xs font-semibold text-gray-400 block mb-2 uppercase">Consultorios Físicos</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 focus:bg-white focus:border-primary/20 outline-none text-sm transition-all"
+                                    value={branding.physicalRooms}
+                                    onChange={(e) => setBranding({ ...branding, physicalRooms: parseInt(e.target.value) || 1 })}
+                                />
+                                <p className="text-[10px] text-gray-400 mt-2 italic">Capacidad máxima para citas presenciales simultáneas.</p>
+                            </div>
                         </div>
                     </div>
 
