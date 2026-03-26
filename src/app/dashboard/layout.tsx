@@ -129,17 +129,17 @@ export default function DashboardLayout({
             {/* Mobile Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside className={`
-                fixed lg:sticky top-0 left-0 z-50
+                fixed md:sticky top-0 left-0 z-50
                 w-72 h-screen bg-white border-r border-gray-100 
                 flex flex-col shadow-sm transition-transform duration-300 ease-in-out
-                ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             `}>
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <Logo
@@ -149,7 +149,7 @@ export default function DashboardLayout({
                         logoUrl={branding.logoUrl}
                     />
                     <button
-                        className="lg:hidden p-2 text-gray-400 hover:text-primary"
+                        className="md:hidden p-2 text-gray-400 hover:text-primary"
                         onClick={() => setIsSidebarOpen(false)}
                     >
                         <X size={24} />
@@ -194,7 +194,7 @@ export default function DashboardLayout({
                 <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-6 md:px-12 sticky top-0 z-30">
                     <div className="flex items-center gap-4">
                         <button
-                            className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+                            className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
                             onClick={() => setIsSidebarOpen(true)}
                         >
                             <Menu size={24} />
