@@ -21,6 +21,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { getTenantBranding } from "@/lib/tenant";
 import axios from "axios";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 interface SidebarItemProps {
     href: string;
@@ -211,6 +212,7 @@ export default function DashboardLayout({
                     {children}
                 </div>
             </main>
+            <ChatWidget />
         </div>
     );
 }

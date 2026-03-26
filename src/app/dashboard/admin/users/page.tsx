@@ -14,7 +14,8 @@ import {
     Loader2,
     Trash2,
     Edit2,
-    Activity
+    Activity,
+    CalendarCheck
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ interface UserProfile {
         totalAssigned: number;
     };
     assignedPsychologists?: Array<{
+        psychologistId: string;
         psychologist: {
             user: { name: string };
         }
@@ -50,6 +52,7 @@ export default function AdminUsersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTherapyModalOpen, setIsTherapyModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [historyData, setHistoryData] = useState<any[]>([]);
@@ -69,6 +72,14 @@ export default function AdminUsersPage() {
         role: "PATIENT",
         phone: "",
         psychologistIds: [] as string[]
+    });
+
+    const [bookingData, setBookingData] = useState({
+        psychologistId: "",
+        date: new Date().toISOString().split('T')[0],
+        time: "09:00",
+        type: "VIRTUAL" as "VIRTUAL" | "IN_PERSON",
+        notes: "Cita programada por administración"
     });
 
     const fetchUsers = async () => {
@@ -142,6 +153,28 @@ export default function AdminUsersPage() {
             fetchUsers();
         } catch (error: any) {
             toast.error(error.response?.data?.error || "Error al procesar solicitud");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleBookingSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+        setSubmitting(true);
+        try {
+            const startTime = new Date(`${bookingData.date}T${bookingData.time}`);
+            await axios.post("/api/admin/appointments", {
+                patientId: editingUser.profile?.id,
+                psychologistId: bookingData.psychologistId,
+                startTime: startTime.toISOString(),
+                type: bookingData.type,
+                notes: bookingData.notes
+            });
+            toast.success("Cita agendada correctamente");
+            setIsBookingModalOpen(false);
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Error al agendar cita");
         } finally {
             setSubmitting(false);
         }
@@ -283,6 +316,21 @@ export default function AdminUsersPage() {
                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 {user.role === "PATIENT" && (
                                                     <>
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingUser(user);
+                                                                setBookingData(prev => ({
+                                                                    ...prev,
+                                                                    psychologistId: user.profile?.assignedPsychologists?.[0]?.psychologistId || ""
+                                                                }));
+                                                                setIsBookingModalOpen(true);
+                                                                setIsHistoryModalOpen(false);
+                                                            }}
+                                                            className="text-gray-400 hover:text-green-500 transition-colors p-2"
+                                                            title="Agendar Cita"
+                                                        >
+                                                            <CalendarCheck size={18} />
+                                                        </button>
                                                         <button
                                                             onClick={() => {
                                                                 setEditingUser(user);
@@ -547,6 +595,96 @@ export default function AdminUsersPage() {
                     </div>
                 )
             }
+            {/* Booking Modal */}
+            {isBookingModalOpen && editingUser && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-green-50/30">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800">Agendar Cita Directa</h3>
+                                <p className="text-xs text-gray-500">{editingUser.name}</p>
+                            </div>
+                            <button onClick={() => setIsBookingModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleBookingSubmit} className="p-8 space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Seleccionar Psicólogo</label>
+                                <select
+                                    required
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                    value={bookingData.psychologistId}
+                                    onChange={(e) => setBookingData({ ...bookingData, psychologistId: e.target.value })}
+                                >
+                                    <option value="">Seleccione un profesional...</option>
+                                    {psychologists.map(p => (
+                                        <option key={p.id} value={p.profile?.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Fecha</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                        value={bookingData.date}
+                                        onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Hora</label>
+                                    <input
+                                        required
+                                        type="time"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                        value={bookingData.time}
+                                        onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Modalidad</label>
+                                <div className="flex gap-2">
+                                    {(["VIRTUAL", "IN_PERSON"] as const).map(m => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setBookingData({ ...bookingData, type: m })}
+                                            className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all border ${bookingData.type === m ? 'bg-primary text-white border-primary' : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                                                }`}
+                                        >
+                                            {m === 'VIRTUAL' ? 'Virtual' : 'Presencial'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Notas Adicionales</label>
+                                <textarea
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[80px] resize-none text-sm"
+                                    value={bookingData.notes}
+                                    onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
+                                />
+                            </div>
+
+                            <button
+                                disabled={submitting}
+                                type="submit"
+                                className="w-full bg-primary text-white py-5 rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
+                            >
+                                {submitting && <Loader2 className="animate-spin" size={20} />}
+                                Confirmar Agendamiento
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }

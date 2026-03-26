@@ -51,6 +51,7 @@ model Company {
   clinicalNotes   ClinicalNote[]
   waitlistEntries Waitlist[]
   availabilities  Availability[]
+  messages        Message[]
 }
 
 model User {
@@ -64,6 +65,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   profile       Profile?
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
 }
 
 model Profile {
@@ -186,4 +189,16 @@ model Consent {
   acceptedAt      DateTime  @default(now())
   ipAddress       String?
   version         String    // e.g., "1.0"
+}
+model Message {
+  id          String   @id @default(cuid())
+  content     String
+  senderId    String
+  receiverId  String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt   DateTime @default(now())
+  isRead      Boolean  @default(false)
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
 }
