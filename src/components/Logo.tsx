@@ -9,6 +9,7 @@ interface LogoProps {
     className?: string;
     brandName?: string;
     brandSubtitle?: string;
+    logoUrl?: string;
 }
 
 export default function Logo({
@@ -16,7 +17,8 @@ export default function Logo({
     theme = "light",
     className = "",
     brandName = "HealthSaaS",
-    brandSubtitle = "Centro de Salud"
+    brandSubtitle = "Centro de Salud",
+    logoUrl
 }: LogoProps) {
     const isDark = theme === "dark";
     const primaryColor = isDark ? "text-white" : "text-primary";
@@ -24,9 +26,15 @@ export default function Logo({
 
     const GenericIcon = () => (
         <div className={`relative flex items-center justify-center ${isDark ? "bg-white/5" : "bg-primary/5"} p-1 rounded-full`}>
-            <div className={`w-10 h-10 rounded-full border border-current flex items-center justify-center relative ${primaryColor}`}>
-                <Activity size={20} />
-            </div>
+            {logoUrl ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                    <img src={logoUrl} alt={brandName} className="max-w-full max-h-full object-contain" />
+                </div>
+            ) : (
+                <div className={`w-10 h-10 rounded-full border border-current flex items-center justify-center relative ${primaryColor}`}>
+                    <Activity size={20} />
+                </div>
+            )}
         </div>
     );
 

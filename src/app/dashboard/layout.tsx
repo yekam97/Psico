@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { getTenantBranding } from "@/lib/tenant";
+import axios from "axios";
 
 interface SidebarItemProps {
     href: string;
@@ -60,7 +61,30 @@ export default function DashboardLayout({
     }, [pathname]);
 
     // Resolve tenant branding
-    const branding = getTenantBranding(companyId);
+    const [branding, setBranding] = useState(getTenantBranding(companyId));
+
+    useEffect(() => {
+        const fetchBranding = async () => {
+            if (companyId) {
+                try {
+                    const res = await axios.get("/api/admin/settings");
+                    if (res.data) {
+                        setBranding({
+                            ...branding,
+                            name: res.data.name || branding.name,
+                            logoUrl: res.data.logoUrl || branding.logoUrl,
+                            primaryColor: res.data.primaryColor || branding.primaryColor,
+                            secondaryColor: res.data.secondaryColor || branding.secondaryColor,
+                            tertiaryColor: res.data.tertiaryColor || branding.tertiaryColor
+                        });
+                    }
+                } catch (e) {
+                    console.error("Layout branding fetch failed:", e);
+                }
+            }
+        };
+        fetchBranding();
+    }, [companyId, pathname]); // Re-fetch on path change to keep it sync
 
     const psychologistLinks = [
         { href: "/dashboard/psychologist", icon: LayoutDashboard, label: "Mi Resumen" },
@@ -72,7 +96,6 @@ export default function DashboardLayout({
         ADMIN: [
             { href: "/dashboard/admin", icon: LayoutDashboard, label: "Vista General" },
             { href: "/dashboard/admin/users", icon: Users, label: "Gestionar Usuarios" },
-            { href: "/dashboard/admin/stats", icon: FileText, label: "Estadísticas" },
             { href: "/dashboard/profile", icon: Settings, label: "Mi Perfil" },
         ],
         PSYCHOLOGIST: [
@@ -122,6 +145,7 @@ export default function DashboardLayout({
                         brandName={branding.name}
                         brandSubtitle={branding.subtitle}
                         variant={branding.logoVariant}
+                        logoUrl={branding.logoUrl}
                     />
                     <button
                         className="lg:hidden p-2 text-gray-400 hover:text-primary"

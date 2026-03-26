@@ -5,6 +5,7 @@ export interface TenantBranding {
     secondaryColor: string;
     tertiaryColor: string;
     logoVariant: "imagotipo" | "isotipo";
+    logoUrl?: string;
 }
 
 const DEFAULT_BRANDING: TenantBranding = {
@@ -13,7 +14,8 @@ const DEFAULT_BRANDING: TenantBranding = {
     primaryColor: "#24343B",
     secondaryColor: "#EBA554",
     tertiaryColor: "#948472",
-    logoVariant: "imagotipo"
+    logoVariant: "imagotipo",
+    logoUrl: ""
 };
 
 const MINERVA_BRANDING: TenantBranding = {
@@ -22,7 +24,8 @@ const MINERVA_BRANDING: TenantBranding = {
     primaryColor: "#24343B",
     secondaryColor: "#EBA554",
     tertiaryColor: "#948472",
-    logoVariant: "imagotipo"
+    logoVariant: "imagotipo",
+    logoUrl: ""
 };
 
 export function getTenantBranding(companyId: string | null): TenantBranding {
