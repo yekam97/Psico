@@ -22,7 +22,7 @@ export default function Home() {
         <div className="hidden space-x-8 md:flex items-center">
           <Link href="/about" className="hover:text-primary transition-colors font-medium">Nosotros</Link>
           <Link href="/login" className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-dark transition-all shadow-md font-bold">
-            Acceso Profesionales
+            Acceso
           </Link>
         </div>
       </nav>
