@@ -98,7 +98,7 @@ export default function AboutPage() {
                 <div className="max-w-4xl mx-auto bg-gray-900 text-white p-12 md:p-20 rounded-[3rem] shadow-2xl relative overflow-hidden text-center">
                     <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 rounded-full -ml-20 -mt-20 blur-3xl opacity-50" />
                     <h2 className="text-3xl md:text-5xl font-light mb-10">Únete a la nueva era de la <span className="text-secondary">gestión psicológica.</span></h2>
-                    <Link href="/login" className="bg-primary text-white px-12 py-5 rounded-2xl font-bold hover:bg-primary-dark transition-all inline-block shadow-lg">
+                    <Link href="/#contacto" className="bg-primary text-white px-12 py-5 rounded-2xl font-bold hover:bg-primary-dark transition-all inline-block shadow-lg">
                         Prueba Gratuita
                     </Link>
                 </div>

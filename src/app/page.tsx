@@ -145,7 +145,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
                     <Phone size={20} />
                   </div>
-                  <span>+57 321 456 7890</span>
+                  <span>+57 317 524 4453</span>
                 </div>
               </div>
             </div>
