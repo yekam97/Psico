@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
                 const minervaId = "minerva-default-id";
                 const demoUsers = [
                     { id: "1", email: "admin@minerva.com", password: "123", name: "Admin Minerva", role: "ADMIN", companyId: minervaId },
-                    { id: "2", email: "psicologo@minerva.com", password: "123", name: "Dr. Roberto Casas", role: "PSYCHOLOGIST", companyId: minervaId },
+                    { id: "2", email: "psicologo@minerva.com", password: "123", name: "Dr. Roberto Casas", role: "PSYCHOLOGIST", companyId: minervaId, profileId: "demo-psychologist-id" },
                     { id: "3", email: "paciente@minerva.com", password: "123", name: "Ana Maria", role: "PATIENT", companyId: minervaId },
                 ];
 

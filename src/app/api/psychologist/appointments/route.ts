@@ -11,8 +11,13 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const psychologistId = (session.user as any).profileId; // Assuming profileId is in session
+    const psychologistId = (session.user as any).profileId;
     const companyId = (session.user as any).companyId;
+
+    if (!psychologistId) {
+        console.error("No profileId found for psychologist session:", session.user);
+        return NextResponse.json({ daily: [], upcoming: [] }); // Return empty instead of 500
+    }
 
     try {
         // Get today's appointments

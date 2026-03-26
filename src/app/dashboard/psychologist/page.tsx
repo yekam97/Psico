@@ -109,7 +109,7 @@ export default function PsychologistDashboard() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {data.daily.map((appt: any) => (
+                            {data?.daily?.map((appt: any) => (
                                 <div key={appt.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex flex-col md:flex-row justify-between gap-6">
                                         <div className="flex gap-6">
