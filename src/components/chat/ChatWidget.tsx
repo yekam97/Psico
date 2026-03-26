@@ -29,10 +29,19 @@ export default function ChatWidget() {
         try {
             const res = await axios.get(`/api/chat/messages?contactId=${contactId}`);
             setMessages(res.data);
+            // Mark as read when messages are fetched (opening chat)
+            await axios.put("/api/chat/messages", { senderId: contactId });
+            // Refresh contacts to update badges
+            fetchContacts();
         } catch (e) {
             console.error(e);
         }
     };
+
+    useEffect(() => {
+        const interval = setInterval(() => fetchContacts(), 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -70,14 +79,21 @@ export default function ChatWidget() {
 
     if (!session) return null;
 
+    const totalUnread = contacts.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+
     return (
         <div className="fixed bottom-8 right-8 z-[200]">
             {!isOpen ? (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="bg-primary text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all group"
+                    className="bg-primary text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all group relative"
                 >
                     <MessageSquare size={28} />
+                    {totalUnread > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full border-2 border-white animate-bounce-subtle">
+                            {totalUnread > 9 ? "+9" : totalUnread}
+                        </span>
+                    )}
                     <span className="absolute right-full mr-4 bg-white text-gray-800 px-4 py-2 rounded-xl text-sm font-bold shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-100">
                         Chat de Soporte Interno
                     </span>
@@ -120,7 +136,7 @@ export default function ChatWidget() {
                                             className="w-full flex items-center gap-3 p-3 bg-white rounded-2xl hover:bg-primary/5 transition-all text-left border border-gray-100 group"
                                         >
                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${c.role === 'ADMIN' ? 'bg-primary/10 text-primary' :
-                                                    c.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
+                                                c.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
                                                 }`}>
                                                 {c.name?.charAt(0) || "U"}
                                             </div>
@@ -128,6 +144,11 @@ export default function ChatWidget() {
                                                 <p className="text-sm font-bold text-gray-800 truncate">{c.name}</p>
                                                 <p className="text-[10px] text-gray-400 uppercase font-bold">{c.role}</p>
                                             </div>
+                                            {c.unreadCount > 0 && (
+                                                <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                                                    {c.unreadCount}
+                                                </div>
+                                            )}
                                         </button>
                                     ))
                                 )}
@@ -172,6 +193,15 @@ export default function ChatWidget() {
                     )}
                 </div>
             )}
+            <style jsx>{`
+                .animate-bounce-subtle {
+                    animation: bounce-subtle 2s infinite ease-in-out;
+                }
+                @keyframes bounce-subtle {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-3px); }
+                }
+            `}</style>
         </div>
     );
 }

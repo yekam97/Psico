@@ -54,3 +54,28 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Error sending message" }, { status: 500 });
     }
 }
+
+export async function PUT(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { senderId } = await req.json();
+    const userId = (session.user as any).id;
+    const companyId = (session.user as any).companyId;
+
+    try {
+        await (prisma as any).message.updateMany({
+            where: {
+                senderId,
+                receiverId: userId,
+                companyId,
+                isRead: false
+            },
+            data: { isRead: true }
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: "Error marking messages as read" }, { status: 500 });
+    }
+}

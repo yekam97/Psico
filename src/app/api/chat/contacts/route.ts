@@ -15,6 +15,22 @@ export async function GET() {
     try {
         let contacts: any[] = [];
 
+        // Fetch unread counts for all potential senders to this user
+        const unreadCounts = await (prisma as any).message.groupBy({
+            by: ['senderId'],
+            where: {
+                receiverId: userId,
+                companyId,
+                isRead: false
+            },
+            _count: { id: true }
+        });
+
+        const unreadMap = unreadCounts.reduce((acc: any, curr: any) => {
+            acc[curr.senderId] = curr._count.id;
+            return acc;
+        }, {});
+
         if (role === "ADMIN") {
             // Admins see everyone in the company
             const users = await prisma.user.findMany({
@@ -67,7 +83,12 @@ export async function GET() {
             contacts = [...admins, ...psychologists];
         }
 
-        return NextResponse.json(contacts);
+        const contactsWithUnread = contacts.map(c => ({
+            ...c,
+            unreadCount: unreadMap[c.id] || 0
+        }));
+
+        return NextResponse.json(contactsWithUnread);
     } catch (error) {
         console.error("Error fetching chat contacts:", error);
         return NextResponse.json({ error: "Error fetching contacts" }, { status: 500 });
