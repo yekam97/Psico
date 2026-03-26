@@ -62,6 +62,12 @@ export default function DashboardLayout({
     // Resolve tenant branding
     const branding = getTenantBranding(companyId);
 
+    const psychologistLinks = [
+        { href: "/dashboard/psychologist", icon: LayoutDashboard, label: "Mi Resumen" },
+        { href: "/dashboard/psychologist/patients", icon: Users, label: "Mis Pacientes" },
+        { href: "/dashboard/profile", icon: Settings, label: "Perfil" },
+    ];
+
     const menuItems = {
         ADMIN: [
             { href: "/dashboard/admin", icon: LayoutDashboard, label: "Vista General" },

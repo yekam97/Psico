@@ -1,181 +1,212 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import esLocale from "@fullcalendar/core/locales/es";
+import { useState, useEffect } from "react";
 import {
-    Calendar as CalendarIcon,
+    Calendar,
     Clock,
-    Users,
-    CheckCircle,
+    User,
+    CheckCircle2,
+    XCircle,
+    ChevronRight,
+    Lightbulb,
+    Loader2,
     Video,
     MapPin,
-    ChevronRight,
-    ArrowRight
+    CalendarDays
 } from "lucide-react";
+import axios from "axios";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+const WELLBEING_TIPS = [
+    "La autocompasión es el primer paso hacia la sanación. Trátate con la misma amabilidad que tratarías a un buen amigo.",
+    "Un pequeño progreso cada día suma grandes resultados. No subestimes el poder de la constancia.",
+    "Practica la respiración consciente durante 5 minutos hoy. Tu mente lo agradecerá.",
+    "El descanso no es un premio, es una necesidad biológica y emocional. Permítete desconectar.",
+    "Validar tus emociones es más importante que intentar 'arreglarlas' de inmediato."
+];
 
 export default function PsychologistDashboard() {
-    const { data: session } = useSession();
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [tipOfDay, setTipOfDay] = useState("");
+    const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-    // Mock stats for demonstration
-    const stats = [
-        { label: "Citas Hoy", value: "8", icon: CalendarIcon, color: "text-secondary", bg: "bg-secondary/10" },
-        { label: "Pacientes", value: "24", icon: Users, color: "text-tertiary", bg: "bg-tertiary/10" },
-        { label: "Pendientes", value: "3", icon: Clock, color: "text-primary", bg: "bg-primary/5" },
-        { label: "Completadas", value: "85%", icon: CheckCircle, color: "text-green-500", bg: "bg-green-50" },
-    ];
+    useEffect(() => {
+        fetchDashboardData();
+        setTipOfDay(WELLBEING_TIPS[Math.floor(Math.random() * WELLBEING_TIPS.length)]);
+    }, []);
 
-    // Mock events for demonstration
-    const events = [
-        {
-            id: "1",
-            title: "Cita: Juan Pérez",
-            start: new Date(new Date().setHours(9, 0, 0, 0)).toISOString(),
-            end: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
-            extendedProps: { type: "VIRTUAL", patient: "Juan Pérez", meetLink: "https://meet.google.com/abc-defg-hij" }
-        },
-        {
-            id: "2",
-            title: "Cita: Maria Garcia",
-            start: new Date(new Date().setHours(11, 30, 0, 0)).toISOString(),
-            end: new Date(new Date().setHours(12, 30, 0, 0)).toISOString(),
-            extendedProps: { type: "IN_PERSON", patient: "Maria Garcia" }
+    const fetchDashboardData = async () => {
+        try {
+            const response = await axios.get("/api/psychologist/appointments");
+            setData(response.data);
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const handleStatusUpdate = async (id: string, status: string, reason?: string) => {
+        setUpdatingStatus(id);
+        try {
+            await axios.patch("/api/appointments/status", {
+                id,
+                status,
+                cancellationReason: reason
+            });
+            fetchDashboardData();
+        } catch (error) {
+            alert("Error al actualizar la cita");
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center py-40">
+                <Loader2 className="animate-spin text-primary" size={40} />
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                {/* Welcome Card */}
-                <div className="lg:col-span-2 flex-1 bg-white p-6 md:p-10 rounded-3xl md:rounded-[3rem] shadow-xl border border-secondary/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 opacity-50" />
-                    <h1 className="text-2xl md:text-4xl font-light text-primary relative z-10">Hola, <span className="italic font-normal">Dr. Roberto</span></h1>
-                    <p className="text-gray-500 mt-2 relative z-10 text-sm md:text-base">Tienes 3 citas pendientes para hoy. El bienestar de tus pacientes te espera.</p>
+        <div className="max-w-7xl animate-in fade-in duration-500 pb-20">
+            {/* Header & Tip */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="md:col-span-2">
+                    <h2 className="text-4xl font-light text-gray-800">Hola, {format(new Date(), "EEEE d 'de' MMMM", { locale: es })}</h2>
+                    <p className="text-gray-500 mt-2 text-lg">Tienes {data?.daily?.length || 0} sesiones programadas para hoy.</p>
                 </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col items-start justify-between">
-                            <div className={`p-2 rounded-lg md:rounded-full ${stat.bg}`}>
-                                <stat.icon className={`w-4 h-4 md:w-5 md:h-5 ${stat.color}`} />
-                            </div>
-                            <p className="text-gray-500 text-[10px] md:text-sm mt-3 md:mt-4 truncate w-full">{stat.label}</p>
-                            <p className="text-lg md:text-2xl font-semibold text-gray-800">{stat.value}</p>
-                        </div>
-                    ))}
+                <div className="bg-secondary/10 p-8 rounded-[2.5rem] relative overflow-hidden group border border-secondary/20">
+                    <div className="absolute top-4 right-4 text-secondary opacity-20">
+                        <Lightbulb size={40} />
+                    </div>
+                    <h4 className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">Tip de Bienestar</h4>
+                    <p className="text-gray-700 text-sm italic font-medium leading-relaxed">"{tipOfDay}"</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                {/* Calendar Column */}
-                <div className="lg:col-span-2 bg-white p-4 md:p-8 rounded-3xl md:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="flex items-center justify-between mb-6 md:mb-8">
-                        <h2 className="text-xl md:text-2xl font-light flex items-center gap-2 md:gap-3">
-                            <CalendarIcon className="text-primary w-5 h-5 md:w-6 md:h-6" /> Agenda Semanal
-                        </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                {/* Daily Agenda */}
+                <div className="lg:col-span-2 space-y-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                            <CalendarDays size={24} />
+                        </div>
+                        <h3 className="text-2xl font-light text-gray-800">Agenda de Hoy</h3>
                     </div>
-                    <div className="calendar-container overflow-x-auto text-xs md:text-base">
-                        <FullCalendar
-                            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                            initialView="timeGridWeek"
-                            headerToolbar={{
-                                left: "prev,next today",
-                                center: "title",
-                                right: "timeGridWeek,timeGridDay"
-                            }}
-                            events={events}
-                            locale={esLocale}
-                            allDaySlot={false}
-                            slotMinTime="07:00:00"
-                            slotMaxTime="20:00:00"
-                            height="auto"
-                            slotLabelFormat={{
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                            }}
-                            eventContent={(eventInfo) => (
-                                <div className={`p-1 md:p-2 rounded-lg md:rounded-xl text-[10px] md:text-xs overflow-hidden ${eventInfo.event.extendedProps.type === 'VIRTUAL'
-                                    ? 'bg-primary/20 border-l-2 md:border-l-4 border-primary text-primary-dark'
-                                    : 'bg-sage/20 border-l-2 md:border-l-4 border-sage text-sage-dark'
-                                    }`}>
-                                    <div className="font-bold">{eventInfo.timeText}</div>
-                                    <div className="truncate font-medium">{eventInfo.event.extendedProps.patient}</div>
-                                    <div className="flex items-center gap-1 mt-1 opacity-70">
-                                        {eventInfo.event.extendedProps.type === 'VIRTUAL' ? <Video size={8} /> : <MapPin size={8} />}
-                                        <span className="hidden sm:inline">{eventInfo.event.extendedProps.type === 'VIRTUAL' ? 'Virtual' : 'Presencial'}</span>
-                                    </div>
-                                </div>
-                            )}
-                        />
-                    </div>
-                </div>
 
-                {/* Sidebar Info/Upcoming */}
-                <div className="space-y-6 md:space-y-8">
-                    <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] shadow-sm border border-gray-100">
-                        <h3 className="text-lg md:text-xl font-light mb-4 md:mb-6">Próximas Citas</h3>
-                        <div className="space-y-3 md:space-y-4">
-                            {events.map((event) => (
-                                <div key={event.id} className="p-4 rounded-xl md:rounded-2xl bg-gray-50 border border-transparent hover:border-primary/20 transition-all cursor-pointer group">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
-                                            {event.extendedProps.type}
-                                        </span>
-                                        <Clock className="w-4 h-4 text-gray-400" />
-                                    </div>
-                                    <p className="font-medium text-gray-800 text-sm md:text-base">{event.extendedProps.patient}</p>
-                                    <p className="text-[10px] md:text-xs text-gray-500 mt-1">Hoy, 09:00 - 10:00 AM</p>
+                    {data?.daily?.length === 0 ? (
+                        <div className="bg-white p-12 rounded-[3rem] border border-gray-100 text-center">
+                            <Calendar className="mx-auto text-gray-200 mb-4" size={48} />
+                            <p className="text-gray-400">No tienes citas programadas para hoy.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {data.daily.map((appt: any) => (
+                                <div key={appt.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                                    <div className="flex flex-col md:flex-row justify-between gap-6">
+                                        <div className="flex gap-6">
+                                            <div className="flex flex-col items-center justify-center min-w-[70px] bg-gray-50 rounded-2xl p-3 h-fit">
+                                                <span className="text-xs font-bold text-gray-400 uppercase">{format(new Date(appt.startTime), 'HH:mm')}</span>
+                                                <div className="w-1 h-8 bg-primary/20 rounded-full my-1"></div>
+                                                <span className="text-xs font-bold text-gray-400 uppercase">{format(new Date(appt.endTime), 'HH:mm')}</span>
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="text-xl font-bold text-gray-800">{appt.patient.user.name}</h4>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${appt.type === 'VIRTUAL' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                                                        }`}>
+                                                        {appt.type === 'VIRTUAL' ? <Video size={10} className="inline mr-1" /> : <MapPin size={10} className="inline mr-1" />}
+                                                        {appt.type}
+                                                    </span>
+                                                </div>
+                                                <p className="text-gray-400 text-sm mb-4">{appt.patient.user.email}</p>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                                                        Saldo: <span className="text-primary">{appt.patient.therapyInventory?.remaining || 0} sesiones</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                    <a
-                                        href={event.extendedProps.meetLink}
-                                        target="_blank"
-                                        className="mt-3 md:mt-4 flex items-center justify-center gap-2 bg-primary text-white py-2 rounded-xl text-[10px] md:text-xs hover:bg-primary-dark transition-all"
-                                    >
-                                        <Video className="w-3 h-3 md:w-3.5 md:h-3.5" /> Entrar a Meet
-                                    </a>
+                                        <div className="flex items-center gap-3">
+                                            {appt.status === 'SCHEDULED' ? (
+                                                <>
+                                                    <button
+                                                        disabled={updatingStatus === appt.id}
+                                                        onClick={() => handleStatusUpdate(appt.id, 'COMPLETED')}
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-4 rounded-2xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-200"
+                                                    >
+                                                        {updatingStatus === appt.id ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+                                                        Finalizar
+                                                    </button>
+                                                    <button
+                                                        disabled={updatingStatus === appt.id}
+                                                        onClick={() => {
+                                                            const reason = prompt("Indique el motivo de la cancelación:");
+                                                            if (reason) handleStatusUpdate(appt.id, 'CANCELLED', reason);
+                                                        }}
+                                                        className="p-4 rounded-2xl bg-red-50 text-red-400 hover:bg-red-400 hover:text-white transition-all border border-red-100"
+                                                    >
+                                                        <XCircle size={22} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className={`px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest ${appt.status === 'COMPLETED' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-400'
+                                                    }`}>
+                                                    {appt.status}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full mt-4 md:mt-6 text-primary text-xs md:text-sm font-medium flex items-center justify-center gap-2 hover:underline">
-                            Ver todas <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        </button>
+                    )}
+                </div>
+
+                {/* Upcoming / Side Section */}
+                <div className="space-y-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-secondary/10 rounded-2xl text-secondary">
+                            <Clock size={24} />
+                        </div>
+                        <h3 className="text-2xl font-light text-gray-800">Próximas Sesiones</h3>
                     </div>
 
-                    <div className="bg-sage/10 p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] border border-sage/20">
-                        <h3 className="text-lg md:text-xl font-light mb-3 md:mb-4 text-sage-dark">Tip de Bienestar</h3>
-                        <p className="text-xs md:text-sm text-sage-dark/80 leading-relaxed italic">
-                            "Recuerda que agendar 10 minutos entre sesiones ayuda a reducir la fatiga cognitiva y mejorar la atención en cada paciente."
-                        </p>
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm divide-y divide-gray-50">
+                        {data?.upcoming?.length === 0 ? (
+                            <p className="text-gray-400 text-center py-4">Sin sesiones próximas.</p>
+                        ) : (
+                            data?.upcoming?.map((appt: any) => (
+                                <div key={appt.id} className="py-6 first:pt-0 last:pb-0 group">
+                                    <div className="flex items-start gap-4">
+                                        <div className="min-w-[50px] text-center">
+                                            <p className="text-[10px] font-bold uppercase text-gray-400 mb-1">{format(new Date(appt.startTime), 'MMM', { locale: es })}</p>
+                                            <p className="text-2xl font-bold text-gray-800 leading-none">{format(new Date(appt.startTime), 'd')}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-gray-800 group-hover:text-primary transition-colors cursor-pointer flex justify-between items-center">
+                                                {appt.patient.user.name}
+                                                <ChevronRight size={14} className="text-gray-300 group-hover:translate-x-1 transition-transform" />
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] text-gray-400 font-medium">#{appt.type}</span>
+                                                <span className="text-[10px] text-primary font-bold">{format(new Date(appt.startTime), 'HH:mm')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
-
-            <style jsx global>{`
-        .fc { --fc-border-color: #f3f4f6; --fc-today-bg-color: #f7faf9; font-family: inherit; }
-        .fc-header-toolbar { margin-bottom: 1.5rem !important; flex-wrap: wrap; gap: 0.5rem; justify-content: center !important; }
-        .fc-toolbar-title { font-size: 1rem !important; font-weight: 300 !important; width: 100%; text-align: center; margin-bottom: 0.5rem; }
-        @media (min-width: 768px) {
-            .fc-header-toolbar { justify-content: space-between !important; }
-            .fc-toolbar-title { font-size: 1.25rem !important; width: auto; margin-bottom: 0; }
-        }
-        .fc-button-primary { 
-          background-color: transparent !important; 
-          border: 1px solid #e5e7eb !important; 
-          color: #374151 !important;
-          border-radius: 0.5rem md:0.75rem !important;
-          padding: 0.25rem 0.5rem md:0.5rem 1rem !important;
-          font-size: 0.75rem md:0.875rem !important;
-          text-transform: capitalize !important;
-        }
-        .fc-button-primary:hover { background-color: #f9fafb !important; }
-        .fc-button-active { background-color: #5d8aa8 !important; color: white !important; border-color: #5d8aa8 !important; }
-        .fc-timegrid-slot { height: 3rem md:4rem !important; }
-      `}</style>
         </div>
     );
 }
+

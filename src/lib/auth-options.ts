@@ -33,8 +33,9 @@ export const authOptions: NextAuthOptions = {
 
                 // Try Prisma if demo fails
                 try {
-                    const user = await prisma.user.findUnique({
+                    const user = await (prisma as any).user.findUnique({
                         where: { email: credentials.email },
+                        include: { profile: true }
                     });
 
                     if (user && user.password === credentials.password) {
@@ -44,6 +45,7 @@ export const authOptions: NextAuthOptions = {
                             name: user.name,
                             role: user.role,
                             companyId: user.companyId,
+                            profileId: user.profile?.id
                         };
                     }
                 } catch (e) {
@@ -60,6 +62,7 @@ export const authOptions: NextAuthOptions = {
                 token.role = (user as any).role;
                 token.id = user.id;
                 token.companyId = (user as any).companyId;
+                token.profileId = (user as any).profileId;
             }
             return token;
         },
@@ -68,6 +71,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
                 (session.user as any).companyId = token.companyId;
+                (session.user as any).profileId = token.profileId;
             }
             return session;
         },
