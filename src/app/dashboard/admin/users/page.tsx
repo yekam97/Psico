@@ -457,11 +457,14 @@ export default function AdminUsersPage() {
                                                         <input
                                                             type="checkbox"
                                                             className="size-5 rounded-md border-gray-300 text-primary focus:ring-primary accent-primary"
-                                                            checked={formData.psychologistIds.includes(p.id)}
+                                                            checked={formData.psychologistIds.includes(p.profile?.id || "")}
                                                             onChange={(e) => {
+                                                                const profileId = p.profile?.id;
+                                                                if (!profileId) return;
+
                                                                 const ids = e.target.checked
-                                                                    ? [...formData.psychologistIds, p.id].slice(0, 2)
-                                                                    : formData.psychologistIds.filter(id => id !== p.id);
+                                                                    ? [...formData.psychologistIds, profileId].slice(0, 2)
+                                                                    : formData.psychologistIds.filter(id => id !== profileId);
                                                                 setFormData({ ...formData, psychologistIds: ids });
                                                             }}
                                                         />
