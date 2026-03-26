@@ -4,9 +4,9 @@ import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
-    const { id } = params;
+    const { id } = await params;
 
     if (!session || (session.user as any).role !== "ADMIN") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     try {
         const updatedUser = await prisma.$transaction(async (tx) => {
             // Find user first to confirm companyId and profile
-            const existingUser = await tx.user.findFirst({
+            const existingUser = await (tx as any).user.findFirst({
                 where: { id, companyId },
                 include: { profile: true }
             });
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             if (!existingUser) throw new Error("User not found");
 
             // Update Basic User Info
-            const user = await tx.user.update({
+            const user = await (tx as any).user.update({
                 where: { id },
                 data: {
                     email,
@@ -77,9 +77,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
-    const { id } = params;
+    const { id } = await params;
 
     if (!session || (session.user as any).role !== "ADMIN") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -104,31 +104,31 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
                 const profileId = user.profile.id;
 
                 // Delete assignments
-                await tx.patientPsychologist.deleteMany({
+                await (tx as any).patientPsychologist.deleteMany({
                     where: { OR: [{ patientId: profileId }, { psychologistId: profileId }] }
                 });
 
                 // Delete therapy inventory
                 if (user.role === "PATIENT") {
-                    await tx.therapyInventory.deleteMany({ where: { patientId: profileId } });
+                    await (tx as any).therapyInventory.deleteMany({ where: { patientId: profileId } });
                 }
 
                 // Delete notes, appointments etc. or mark as deleted? For now, we clean up
-                await tx.appointment.deleteMany({
+                await (tx as any).appointment.deleteMany({
                     where: { OR: [{ patientId: profileId }, { psychologistId: profileId }] }
                 });
-                await tx.clinicalNote.deleteMany({
+                await (tx as any).clinicalNote.deleteMany({
                     where: { OR: [{ patientId: profileId }, { psychologistId: profileId }] }
                 });
-                await tx.availability.deleteMany({ where: { psychologistId: profileId } });
-                await tx.waitlist.deleteMany({ where: { patientId: profileId } });
+                await (tx as any).availability.deleteMany({ where: { psychologistId: profileId } });
+                await (tx as any).waitlist.deleteMany({ where: { patientId: profileId } });
 
                 // Finally delete profile
-                await tx.profile.delete({ where: { id: profileId } });
+                await (tx as any).profile.delete({ where: { id: profileId } });
             }
 
             // Delete User
-            await tx.user.delete({ where: { id } });
+            await (tx as any).user.delete({ where: { id } });
         });
 
         return NextResponse.json({ success: true });

@@ -4,15 +4,13 @@ import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions);
-    const { id } = params;
-
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { status, cancellationReason } = await req.json();
+    const { id, status, cancellationReason } = await req.json();
     const userRole = (session.user as any).role;
     const companyId = (session.user as any).companyId;
 
@@ -49,14 +47,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                     throw new Error("Patient has no available therapy sessions");
                 }
 
-                await tx.therapyInventory.update({
+                await (tx as any).therapyInventory.update({
                     where: { id: inventory.id },
                     data: {
                         remaining: { decrement: 1 }
                     }
                 });
 
-                await tx.therapyTransaction.create({
+                await (tx as any).therapyTransaction.create({
                     data: {
                         inventoryId: inventory.id,
                         amount: -1,
