@@ -43,6 +43,7 @@ model Company {
   secondaryColor  String      @default("#EBA554")
   tertiaryColor   String      @default("#948472")
   businessHours   Json?       // { "mon": {"open": "08:00", "close": "18:00"}, ... }
+  physicalRooms   Int         @default(1)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   

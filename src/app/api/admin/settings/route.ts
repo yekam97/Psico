@@ -25,7 +25,8 @@ export async function GET() {
                 primaryColor: true,
                 secondaryColor: true,
                 tertiaryColor: true,
-                businessHours: true
+                businessHours: true,
+                physicalRooms: true
             }
         });
 
@@ -53,7 +54,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "No companyId found" }, { status: 400 });
     }
 
-    const { logoUrl, primaryColor, secondaryColor, tertiaryColor, businessHours } = await req.json();
+    const { logoUrl, primaryColor, secondaryColor, tertiaryColor, businessHours, physicalRooms } = await req.json();
 
     try {
         const updatedCompany = await prisma.company.upsert({
@@ -63,7 +64,8 @@ export async function PUT(req: NextRequest) {
                 primaryColor,
                 secondaryColor,
                 tertiaryColor,
-                businessHours
+                businessHours,
+                physicalRooms: physicalRooms ? parseInt(physicalRooms) : undefined
             },
             create: {
                 id: companyId,
@@ -73,7 +75,8 @@ export async function PUT(req: NextRequest) {
                 primaryColor,
                 secondaryColor,
                 tertiaryColor,
-                businessHours
+                businessHours,
+                physicalRooms: physicalRooms ? parseInt(physicalRooms) : 1
             }
         });
 

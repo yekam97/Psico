@@ -6,14 +6,15 @@ import prisma from "@/lib/prisma";
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user as any).role !== "ADMIN") {
+    if (!session || (session.user as any).role !== "PATIENT") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const patientId = (session.user as any).profileId;
     const companyId = (session.user as any).companyId;
-    const { patientId, psychologistId, startTime, duration, type, notes } = await req.json();
+    const { psychologistId, startTime, duration, type, notes } = await req.json();
 
-    if (!patientId || !psychologistId || !startTime) {
+    if (!psychologistId || !startTime) {
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
             if (concurrentAppointments >= roomsCount) {
                 return NextResponse.json({
-                    error: `No hay consultorios físicos disponibles para esta hora. (Máximo: ${roomsCount})`
+                    error: `Lo sentimos, no hay consultorios físicos disponibles para esta hora.`
                 }, { status: 400 });
             }
         }
@@ -68,9 +69,35 @@ export async function POST(req: NextRequest) {
             }
         });
 
+        // Deduct therapy session if applicable (Assuming it costs 1 session)
+        const inventory = await (prisma as any).therapyInventory.findUnique({
+            where: { patientId }
+        });
+
+        if (inventory && inventory.remaining > 0) {
+            await (prisma as any).therapyInventory.update({
+                where: { patientId },
+                data: {
+                    remaining: { decrement: 1 },
+                    history: {
+                        create: {
+                            amount: -1,
+                            type: "SESSION_COMPLETED",
+                            appointmentId: appointment.id,
+                            notes: "Cita agendada"
+                        }
+                    }
+                }
+            });
+        } else {
+            // If they don't have sessions, maybe we shouldn't allow booking?
+            // For now, we allow it but log it.
+            console.warn(`Patient ${patientId} booked without available therapy sessions.`);
+        }
+
         return NextResponse.json(appointment);
     } catch (error) {
-        console.error("Error creating admin appointment:", error);
-        return NextResponse.json({ error: "Error creating appointment" }, { status: 500 });
+        console.error("Error creating patient appointment:", error);
+        return NextResponse.json({ error: "Error al agendar la cita" }, { status: 500 });
     }
 }
