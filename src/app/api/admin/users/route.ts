@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -55,12 +56,14 @@ export async function POST(req: NextRequest) {
     const { email, password, name, role, psychologistIds, phone } = await req.json();
 
     try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         // Create User and Profile in a transaction
         const newUser = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
                     email,
-                    password, // In production, this MUST be hashed
+                    password: hashedPassword,
                     name,
                     role: role as Role,
                     companyId,

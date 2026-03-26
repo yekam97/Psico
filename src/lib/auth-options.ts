@@ -16,29 +16,17 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials.password) {
+                if (!credentials?.email || !credentials?.password) {
                     return null;
                 }
 
-                // Demo Accounts for immediate testing (Mock Company ID)
-                const minervaId = "minerva-default-id";
-                const demoUsers = [
-                    { id: "1", email: "admin@minerva.com", password: "123", name: "Admin Minerva", role: "ADMIN", companyId: minervaId },
-                    { id: "2", email: "psicologo@minerva.com", password: "123", name: "Dr. Roberto Casas", role: "PSYCHOLOGIST", companyId: minervaId, profileId: "demo-psychologist-id" },
-                    { id: "3", email: "paciente@minerva.com", password: "123", name: "Ana Maria", role: "PATIENT", companyId: minervaId },
-                ];
-
-                const demoUser = demoUsers.find(u => u.email === credentials.email && u.password === credentials.password);
-                if (demoUser) return demoUser;
-
-                // Try Prisma if demo fails
                 try {
-                    const user = await (prisma as any).user.findUnique({
+                    const user = await prisma.user.findUnique({
                         where: { email: credentials.email },
                         include: { profile: true }
                     });
 
-                    if (user && user.password === credentials.password) {
+                    if (user && await compare(credentials.password, user.password)) {
                         return {
                             id: user.id,
                             email: user.email,
@@ -49,7 +37,7 @@ export const authOptions: NextAuthOptions = {
                         };
                     }
                 } catch (e) {
-                    console.error("Prisma connection error:", e);
+                    console.error("Auth error:", e);
                 }
 
                 return null;

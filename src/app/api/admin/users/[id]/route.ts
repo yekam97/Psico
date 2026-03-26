@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
@@ -25,20 +26,25 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
             if (!existingUser) throw new Error("User not found");
 
+            let updateData: any = {
+                email,
+                name,
+                role: role as Role,
+                profile: {
+                    update: {
+                        phone,
+                    }
+                }
+            };
+
+            if (password) {
+                updateData.password = await bcrypt.hash(password, 10);
+            }
+
             // Update Basic User Info
             const user = await (tx as any).user.update({
                 where: { id },
-                data: {
-                    email,
-                    ...(password ? { password } : {}), // Update password only if provided
-                    name,
-                    role: role as Role,
-                    profile: {
-                        update: {
-                            phone,
-                        }
-                    }
-                },
+                data: updateData,
                 include: { profile: true }
             });
 
