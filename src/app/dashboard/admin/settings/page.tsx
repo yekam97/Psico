@@ -14,6 +14,7 @@ import {
     Loader2
 } from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
 const DAYS = [
@@ -97,8 +98,9 @@ export default function AdminSettingsPage() {
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
+            toast.success("Configuración guardada correctamente");
         } catch (error) {
-            alert("Error al guardar configuración");
+            toast.error("Error al guardar configuración");
         } finally {
             setSaving(false);
         }

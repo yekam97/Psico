@@ -14,6 +14,7 @@ import {
     Send
 } from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -61,11 +62,10 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
         try {
             await axios.post(`/api/psychologist/notes/${id}`, { content: newNote });
             setNewNote("");
-            // Refresh notes
             const notesRes = await axios.get(`/api/psychologist/notes/${id}`);
             setNotes(notesRes.data);
         } catch (error) {
-            alert("Error al guardar la nota");
+            toast.error("Error al guardar la nota");
         } finally {
             setSubmitting(false);
         }

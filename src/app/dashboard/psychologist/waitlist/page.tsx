@@ -15,6 +15,9 @@ import {
 import { useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { WaitlistSkeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { ClipboardX } from "lucide-react";
 
 export default function WaitlistPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -65,13 +68,13 @@ export default function WaitlistPage() {
 
                 <div className="space-y-4">
                     {loading ? (
-                        <div className="flex justify-center py-20">
-                            <Loader2 className="animate-spin text-primary" size={40} />
-                        </div>
+                        <WaitlistSkeleton />
                     ) : filteredWaitlist.length === 0 ? (
-                        <div className="text-center py-20 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200">
-                            <p className="text-gray-500">No hay pacientes en la lista de espera actualmente.</p>
-                        </div>
+                        <EmptyState
+                            title="Sin pacientes en lista"
+                            description="La lista de espera está vacía actualmente. Aparecerán aquí los pacientes que tienen preferencia de horarios y no alcanzaron espacio."
+                            icon={ClipboardX}
+                        />
                     ) : (
                         filteredWaitlist.map((item) => (
                             <div key={item.id} className="p-6 rounded-[2rem] bg-gray-50 hover:bg-white border border-transparent hover:border-gray-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group shadow-none hover:shadow-md">
