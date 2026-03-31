@@ -6,12 +6,14 @@ import {
     Search,
     Loader2,
     Calendar,
-    Ticket,
     History,
     Plus,
     X,
     Filter,
-import { ArrowRight, Ticket as TicketIcon } from "lucide-react";
+    CheckCircle2,
+    ArrowRight,
+    Ticket as TicketIcon
+} from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
