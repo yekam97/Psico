@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { BrandingProvider } from "@/components/providers/BrandingProvider";
 import { Toaster } from 'sonner';
 
 export default function RootLayout({
@@ -29,8 +30,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {children}
-          <Toaster position="top-right" richColors closeButton />
+          <BrandingProvider>
+            {children}
+            <Toaster position="top-right" richColors closeButton />
+          </BrandingProvider>
         </AuthProvider>
       </body>
     </html>

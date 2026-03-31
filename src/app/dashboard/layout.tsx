@@ -19,8 +19,7 @@ import {
     X
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { getTenantBranding } from "@/lib/tenant";
-import axios from "axios";
+import { useBranding } from "@/components/providers/BrandingProvider";
 import ChatWidget from "@/components/chat/ChatWidget";
 
 interface SidebarItemProps {
@@ -52,6 +51,7 @@ export default function DashboardLayout({
 }) {
     const pathname = usePathname();
     const { data: session } = useSession();
+    const { branding } = useBranding();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const userRole = (session?.user as any)?.role;
     const companyId = (session?.user as any)?.companyId;
@@ -60,32 +60,6 @@ export default function DashboardLayout({
     useEffect(() => {
         setIsSidebarOpen(false);
     }, [pathname]);
-
-    // Resolve tenant branding
-    const [branding, setBranding] = useState(getTenantBranding(companyId));
-
-    useEffect(() => {
-        const fetchBranding = async () => {
-            if (companyId) {
-                try {
-                    const res = await axios.get("/api/admin/settings");
-                    if (res.data) {
-                        setBranding({
-                            ...branding,
-                            name: res.data.name || branding.name,
-                            logoUrl: res.data.logoUrl || branding.logoUrl,
-                            primaryColor: res.data.primaryColor || branding.primaryColor,
-                            secondaryColor: res.data.secondaryColor || branding.secondaryColor,
-                            tertiaryColor: res.data.tertiaryColor || branding.tertiaryColor
-                        });
-                    }
-                } catch (e) {
-                    console.error("Layout branding fetch failed:", e);
-                }
-            }
-        };
-        fetchBranding();
-    }, [companyId, pathname]); // Re-fetch on path change to keep it sync
 
     const psychologistLinks = [
         { href: "/dashboard/psychologist", icon: LayoutDashboard, label: "Mi Resumen" },
@@ -144,9 +118,9 @@ export default function DashboardLayout({
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <Logo
                         brandName={branding.name}
-                        brandSubtitle={branding.subtitle}
-                        variant={branding.logoVariant}
-                        logoUrl={branding.logoUrl}
+                        brandSubtitle="Centro de Psicología"
+                        variant="imagotipo"
+                        logoUrl={branding.logoUrl ?? undefined}
                     />
                     <button
                         className="md:hidden p-2 text-gray-400 hover:text-primary"
