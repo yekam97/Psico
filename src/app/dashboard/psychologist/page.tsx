@@ -32,6 +32,8 @@ export default function PsychologistDashboard() {
     const [loading, setLoading] = useState(true);
     const [tipOfDay, setTipOfDay] = useState("");
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
+    const [cancelReason, setCancelReason] = useState("");
 
     useEffect(() => {
         fetchDashboardData();

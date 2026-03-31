@@ -25,7 +25,7 @@ export default function ProfilePage() {
     const [formData, setFormData] = useState({
         name: session?.user?.name || "",
         email: session?.user?.email || "",
-        phone: role === "PSYCHOLOGIST" ? "+57 321 000 1122" : "+57 301 555 4433",
+        phone: "",
     });
 
     const [branding, setBranding] = useState({

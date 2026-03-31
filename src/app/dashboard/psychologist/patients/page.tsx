@@ -15,6 +15,8 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function PsychologistPatientsPage() {
     const [patients, setPatients] = useState<any[]>([]);
@@ -67,14 +69,16 @@ export default function PsychologistPatientsPage() {
 
                 <div className="overflow-x-auto">
                     {loading ? (
-                        <div className="flex justify-center py-20">
-                            <Loader2 className="animate-spin text-primary" size={40} />
+                        <div className="w-full">
+                            <div className="hidden md:block"><TableSkeleton /></div>
+                            <div className="md:hidden block"><CardSkeleton /></div>
                         </div>
                     ) : filteredPatients.length === 0 ? (
-                        <div className="text-center py-20 bg-gray-50 rounded-[2rem]">
-                            <Users className="mx-auto text-gray-200 mb-4" size={48} />
-                            <p className="text-gray-400">No se encontraron pacientes.</p>
-                        </div>
+                        <EmptyState
+                            title="Sin pacientes asignados"
+                            description="Aún no tienes pacientes asignados. El administrador puede asignarte pacientes desde el panel de usuarios."
+                            icon={Users}
+                        />
                     ) : (
                         <table className="w-full text-left">
                             <thead>

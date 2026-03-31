@@ -20,6 +20,8 @@ export default function BookAppointmentPage() {
     const [step, setStep] = useState(1);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
     const [modality, setModality] = useState<"VIRTUAL" | "IN_PERSON">("VIRTUAL");
+    const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const router = useRouter();
 
     const [doctors, setDoctors] = useState<any[]>([]);
@@ -140,7 +142,11 @@ export default function BookAppointmentPage() {
                                     <button
                                         key={time}
                                         type="button"
-                                        className="py-3 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-all text-sm font-medium bg-gray-50 hover:bg-white"
+                                        onClick={() => setSelectedTime(time)}
+                                        className={`py-3 rounded-xl border transition-all text-sm font-medium ${selectedTime === time
+                                                ? 'border-primary text-primary bg-primary/5'
+                                                : 'border-gray-100 hover:border-primary hover:text-primary bg-gray-50 hover:bg-white'
+                                            }`}
                                     >
                                         {time}
                                     </button>
@@ -149,15 +155,23 @@ export default function BookAppointmentPage() {
                         </div>
 
                         <button
-                            disabled={submitting}
+                            disabled={submitting || !selectedTime}
                             onClick={async () => {
+                                if (!selectedTime) {
+                                    toast.error("Por favor selecciona un horario");
+                                    return;
+                                }
                                 setSubmitting(true);
                                 try {
-                                    const time = "09:00"; // Should be selected from slots
-                                    const date = new Date().toISOString().split('T')[0];
+                                    // Convert "09:00 AM" format to 24h
+                                    const [timePart, period] = selectedTime.split(' ');
+                                    let [hours, minutes] = timePart.split(':').map(Number);
+                                    if (period === 'PM' && hours !== 12) hours += 12;
+                                    if (period === 'AM' && hours === 12) hours = 0;
+                                    const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
                                     await axios.post("/api/patient/appointments", {
                                         psychologistId: selectedDoc.id,
-                                        startTime: `${date}T${time}:00`,
+                                        startTime: `${selectedDate}T${time24}:00`,
                                         type: modality,
                                         notes: "Cita agendada por el paciente"
                                     });

@@ -152,7 +152,7 @@ export default function PatientDashboard() {
                                 <span className="text-primary">•</span> Cancelaciones permitidas hasta 12h antes.
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-primary">•</span> Las sesiones se descuentan una vez completadas.
+                                <span className="text-primary">•</span> Las sesiones se descuentan al momento de agendar la cita.
                             </li>
                         </ul>
                     </div>
