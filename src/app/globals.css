@@ -1,54 +1,44 @@
 @import "tailwindcss";
 
-/* ── Default brand tokens (overridden at runtime by BrandingProvider) ── */
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-
-  /* Brand colors — written here as defaults, overwritten in :root by BrandingProvider JS */
-  --color-primary: #24343B;
-  --color-primary-light: #3a4e58;
-  --color-primary-dark: #1a252a;
-  --color-secondary: #EBA554;
-  --color-secondary-light: #f1c187;
-  --color-secondary-dark: #cc8d42;
-  --color-tertiary: #948472;
-  --color-tertiary-light: #b3a697;
-  --color-tertiary-dark: #7a6c5d;
-
-  /* Sage alias */
-  --color-sage: #948472;
-  --color-sage-dark: #7a6c5d;
-}
-
 /*
-  @theme WITHOUT "inline" → Tailwind generates utility classes as:
-    .bg-primary { background-color: var(--color-primary); }
-  This means changing --color-primary at runtime (via BrandingProvider)
-  will instantly update ALL bg-primary, text-primary, border-primary elements
-  across the entire app, for every company independently.
+  Multi-tenant dynamic theming strategy:
+
+  Using @theme (WITHOUT "inline") tells Tailwind to generate utility classes that
+  reference CSS variables instead of inlining hex values. This means:
+
+    .bg-primary { background-color: var(--color-primary); }   ← runtime updatable
+    .text-secondary { color: var(--color-secondary); }        ← runtime updatable
+
+  BrandingProvider sets --color-primary, --color-secondary etc. on
+  document.documentElement via JS, instantly recoloring the entire UI for
+  every company without a page reload.
 */
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --color-primary: var(--color-primary);
-  --color-primary-light: var(--color-primary-light);
-  --color-primary-dark: var(--color-primary-dark);
+  --color-primary: #24343B;
+  --color-primary-light: #3a4e58;
+  --color-primary-dark: #1a252a;
 
-  --color-secondary: var(--color-secondary);
-  --color-secondary-light: var(--color-secondary-light);
-  --color-secondary-dark: var(--color-secondary-dark);
+  --color-secondary: #EBA554;
+  --color-secondary-light: #f1c187;
+  --color-secondary-dark: #cc8d42;
 
-  --color-tertiary: var(--color-tertiary);
-  --color-tertiary-light: var(--color-tertiary-light);
-  --color-tertiary-dark: var(--color-tertiary-dark);
+  --color-tertiary: #948472;
+  --color-tertiary-light: #b3a697;
+  --color-tertiary-dark: #7a6c5d;
 
-  --color-sage: var(--color-sage);
-  --color-sage-dark: var(--color-sage-dark);
+  --color-sage: #948472;
+  --color-sage-dark: #7a6c5d;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
