@@ -6,8 +6,11 @@ import {
     startOfMonth,
     endOfMonth,
     subMonths,
-    format,
-    isWithinInterval
+    startOfDay,
+    endOfDay,
+    startOfWeek,
+    endOfWeek,
+    format
 } from "date-fns";
 
 export async function GET() {
@@ -21,9 +24,12 @@ export async function GET() {
     const now = new Date();
     const currentMonthStart = startOfMonth(now);
     const currentMonthEnd = endOfMonth(now);
-
     const prevMonthStart = startOfMonth(subMonths(now, 1));
     const prevMonthEnd = endOfMonth(subMonths(now, 1));
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
 
     try {
         // 1. Total Appointments (Current Month)
@@ -44,7 +50,35 @@ export async function GET() {
             where: { companyId, role: "PATIENT", createdAt: { lte: prevMonthEnd } }
         });
 
-        // 3. Chart Data (Last 3 Months)
+        // 3. Today's Appointments
+        const todayAppointments = await prisma.appointment.count({
+            where: { companyId, startTime: { gte: todayStart, lte: todayEnd } }
+        });
+
+        // 4. Weekly Cancellations with details
+        const cancelledAppointments = await (prisma as any).appointment.findMany({
+            where: {
+                companyId,
+                status: "CANCELLED",
+                startTime: { gte: weekStart, lte: weekEnd }
+            },
+            include: {
+                patient: { include: { user: { select: { name: true } } } },
+                psychologist: { include: { user: { select: { name: true } } } }
+            },
+            orderBy: { startTime: "desc" },
+            take: 20
+        });
+
+        const cancellationDetails = cancelledAppointments.map((a: any) => ({
+            id: a.id,
+            patient: a.patient?.user?.name || "Desconocido",
+            psychologist: a.psychologist?.user?.name || "Desconocido",
+            date: a.startTime,
+            reason: a.cancellationReason || "No especificada"
+        }));
+
+        // 5. Chart Data (Last 3 Months)
         const chartData = [];
         for (let i = 2; i >= 0; i--) {
             const mStart = startOfMonth(subMonths(now, i));
@@ -52,22 +86,24 @@ export async function GET() {
             const count = await prisma.appointment.count({
                 where: { companyId, startTime: { gte: mStart, lte: mEnd } }
             });
-            chartData.push({
-                month: format(mStart, 'MMM', { locale: undefined }), // Simplified for now
-                appointments: count
-            });
+            chartData.push({ month: format(mStart, 'MMM'), appointments: count });
         }
 
-        // 4. Growth Calculations
-        const patientGrowth = prevMonthPatients === 0 ? 0 : ((totalPatients - prevMonthPatients) / prevMonthPatients) * 100;
-        const appointmentGrowth = prevMonthAppointments === 0 ? 0 : ((currentMonthAppointments - prevMonthAppointments) / prevMonthAppointments) * 100;
+        // 6. Growth Calculations
+        const patientGrowth = prevMonthPatients === 0 ? 0
+            : ((totalPatients - prevMonthPatients) / prevMonthPatients) * 100;
+        const appointmentGrowth = prevMonthAppointments === 0 ? 0
+            : ((currentMonthAppointments - prevMonthAppointments) / prevMonthAppointments) * 100;
 
         return NextResponse.json({
             monthAppointments: currentMonthAppointments,
-            totalPatients: totalPatients,
+            totalPatients,
+            todayAppointments,
+            totalCancelled: cancelledAppointments.length,
+            cancellationDetails,
             patientGrowth: Math.round(patientGrowth * 10) / 10,
             appointmentGrowth: Math.round(appointmentGrowth * 10) / 10,
-            chartData: chartData
+            chartData
         });
     } catch (error) {
         console.error("Error fetching stats:", error);
