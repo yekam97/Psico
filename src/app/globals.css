@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
+/* ── Default brand tokens (overridden at runtime by BrandingProvider) ── */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Brand colors — written here as defaults, overwritten in :root by BrandingProvider JS */
   --color-primary: #24343B;
   --color-primary-light: #3a4e58;
   --color-primary-dark: #1a252a;
@@ -17,6 +15,38 @@
   --color-tertiary: #948472;
   --color-tertiary-light: #b3a697;
   --color-tertiary-dark: #7a6c5d;
+
+  /* Sage alias */
+  --color-sage: #948472;
+  --color-sage-dark: #7a6c5d;
+}
+
+/*
+  @theme WITHOUT "inline" → Tailwind generates utility classes as:
+    .bg-primary { background-color: var(--color-primary); }
+  This means changing --color-primary at runtime (via BrandingProvider)
+  will instantly update ALL bg-primary, text-primary, border-primary elements
+  across the entire app, for every company independently.
+*/
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+
+  --color-secondary: var(--color-secondary);
+  --color-secondary-light: var(--color-secondary-light);
+  --color-secondary-dark: var(--color-secondary-dark);
+
+  --color-tertiary: var(--color-tertiary);
+  --color-tertiary-light: var(--color-tertiary-light);
+  --color-tertiary-dark: var(--color-tertiary-dark);
+
+  --color-sage: var(--color-sage);
+  --color-sage-dark: var(--color-sage-dark);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
