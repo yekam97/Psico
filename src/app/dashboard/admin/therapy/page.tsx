@@ -12,7 +12,7 @@ import {
     Filter,
     CheckCircle2,
     ArrowRight,
-    Ticket as TicketIcon
+    Ticket
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
