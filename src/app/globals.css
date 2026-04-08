@@ -1,24 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+  Multi-tenant dynamic theming strategy:
 
-@theme inline {
+  Using @theme (WITHOUT "inline") tells Tailwind to generate utility classes that
+  reference CSS variables instead of inlining hex values. This means:
+
+    .bg-primary { background-color: var(--color-primary); }   ← runtime updatable
+    .text-secondary { color: var(--color-secondary); }        ← runtime updatable
+
+  BrandingProvider sets --color-primary, --color-secondary etc. on
+  document.documentElement via JS, instantly recoloring the entire UI for
+  every company without a page reload.
+*/
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-primary: #24343B;
   --color-primary-light: #3a4e58;
   --color-primary-dark: #1a252a;
+
   --color-secondary: #EBA554;
   --color-secondary-light: #f1c187;
   --color-secondary-dark: #cc8d42;
+
   --color-tertiary: #948472;
   --color-tertiary-light: #b3a697;
   --color-tertiary-dark: #7a6c5d;
+
+  --color-sage: #948472;
+  --color-sage-dark: #7a6c5d;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {

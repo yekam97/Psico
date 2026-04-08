@@ -2,13 +2,13 @@
 
 [] Plataforma - Soportar diseño responsive mobile
 
-[] LANDING - Landing page de HealthSaaS se debe limpiar realmente para lo que hacemos que es organizacieon, gestión y administración de centros de psicologia, nuestro nicho son piscologos y centros de psicologia.
+[x] LANDING - Landing page de HealthSaaS se debe limpiar realmente para lo que hacemos que es organizacieon, gestión y administración de centros de psicologia, nuestro nicho son piscologos y centros de psicologia.
 
-[] LANDING - Refactor de página de "Nosotros"para que hable sobre HealthSaaS, con contacto en página de inicio, que sea lo más elemental. (De momento nuestro foco de clientes es el voz a voz)
+[☓ ] LANDING - Refactor de página de "Nosotros"para que hable sobre HealthSaaS, con contacto en página de inicio, que sea lo más elemental. (De momento nuestro foco de clientes es el voz a voz)
 
-[] LANDING - Volar página de servicios
+[☓ ] LANDING - Volar página de servicios
 
-[] LANDING - Agregar clientes actuales a la página de Home
+[☓ ] LANDING - Agregar clientes actuales a la página de Home
 
 [] BACKEND - Vista Admin - Crear servicio para crud de roles, usuarios
 

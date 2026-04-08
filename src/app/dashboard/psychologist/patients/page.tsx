@@ -1,138 +1,145 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Users,
-    FileText,
-    Clock,
     Search,
-    User,
+    Loader2,
     ChevronRight,
-    MoreVertical,
-    Calendar as CalendarIcon,
-    History,
-    Plus,
-    Save,
-    Check
+    Phone,
+    Mail,
+    Calendar,
+    Filter
 } from "lucide-react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
-export default function PatientsListPage() {
-    const [selectedPatient, setSelectedPatient] = useState<any>(null);
-    const [note, setNote] = useState("");
-    const [saved, setSaved] = useState(false);
+export default function PsychologistPatientsPage() {
+    const [patients, setPatients] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const router = useRouter();
 
-    const patients = [
-        { id: "p1", name: "Juan Pérez", lastSession: "2026-02-28", status: "Activo", history: "Evolución positiva, manejo de ansiedad..." },
-        { id: "p2", name: "Maria Garcia", lastSession: "2026-03-01", status: "Activo", history: "Postulado para revisión de diagnóstico..." },
-        { id: "p3", name: "Carlos Sanchez", lastSession: "2026-02-15", status: "Inactivo", history: "Finalizó proceso de duelo." },
-    ];
+    useEffect(() => {
+        fetchPatients();
+    }, []);
 
-    const handleSaveNote = () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+    const fetchPatients = async () => {
+        try {
+            const response = await axios.get("/api/psychologist/patients");
+            setPatients(response.data);
+        } catch (error) {
+            console.error("Error fetching patients:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    const filteredPatients = patients.filter(p =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
-            {/* Patient List Sidebar */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col h-[700px]">
-                <div className="p-8 border-b border-gray-50 space-y-4">
-                    <h3 className="text-xl font-light">Mis Pacientes</h3>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-primary/20 outline-none text-sm transition-all"
-                        />
-                    </div>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                    {patients.map((p) => (
-                        <div
-                            key={p.id}
-                            onClick={() => setSelectedPatient(p)}
-                            className={`p-4 rounded-2xl cursor-pointer transition-all flex items-center justify-between group ${selectedPatient?.id === p.id ? "bg-primary/10 border-l-4 border-primary" : "hover:bg-gray-50"
-                                }`}
-                        >
-                            <div>
-                                <p className="font-medium text-gray-800">{p.name}</p>
-                                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                                    <Clock size={10} /> Última: {p.lastSession}
-                                </p>
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${p.status === 'Activo' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
-                                    }`}>
-                                    {p.status}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+        <div className="max-w-7xl animate-in fade-in duration-500 pb-20">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+                <div>
+                    <h2 className="text-3xl font-light text-gray-800">Mis Pacientes</h2>
+                    <p className="text-gray-500 mt-1">Gestiona la información y el historial clínico de tus pacientes asignados.</p>
                 </div>
             </div>
 
-            {/* Clinical Notes Area */}
-            <div className="lg:col-span-2 space-y-6">
-                {selectedPatient ? (
-                    <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm h-full space-y-8 animate-in slide-in-from-right-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h2 className="text-3xl font-light text-gray-800">{selectedPatient.name}</h2>
-                                <div className="flex gap-4 mt-2">
-                                    <span className="text-sm text-gray-400 flex items-center gap-1">
-                                        <History size={14} /> ID: {selectedPatient.id}
-                                    </span>
-                                    <span className="text-sm text-gray-400 flex items-center gap-1">
-                                        <Users size={14} /> Paciente desde Enero 2026
-                                    </span>
-                                    <button className="text-gray-400 hover:text-secondary transition-colors p-2">
-                                        <MoreVertical size={20} />
-                                    </button>
-                                </div>
-                            </div>
-                            <button className="flex items-center gap-2 text-secondary hover:underline font-medium">
-                                <FileText size={20} /> Ver Historial Completo
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <Plus size={16} /> Nota de evolución para sesión hoy
-                            </label>
-                            <textarea
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="Escribe aquí las observaciones privadas de la sesión..."
-                                className="w-full h-48 p-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-primary/20 outline-none transition-all resize-none shadow-inner"
-                            />
-                            <div className="flex justify-between items-center">
-                                <p className="text-xs text-gray-400 italic">
-                                    Las notas clínicas son cifradas y solo accesibles por ti.
-                                </p>
-                                <button
-                                    onClick={handleSaveNote}
-                                    className={`flex items-center gap-2 px-8 py-3 rounded-2xl font-medium transition-all ${saved ? "bg-green-500 text-white" : "bg-primary text-white hover:bg-primary-dark"
-                                        }`}
-                                >
-                                    {saved ? <Check size={20} /> : <Save size={20} />}
-                                    {saved ? "Guardado" : "Guardar Nota"}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="pt-8 border-t border-gray-50 space-y-6">
-                            <h3 className="text-lg font-medium text-gray-700">Resumen de Antecedentes</h3>
-                            <div className="bg-sage/5 p-6 rounded-3xl text-sm text-gray-600 leading-relaxed italic">
-                                "{selectedPatient.history}"
-                            </div>
-                        </div>
+            <div className="bg-white p-6 md:p-8 rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between border-b border-gray-50 pb-6">
+                    <div className="relative flex-1 w-full">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Buscar paciente por nombre o correo..."
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                ) : (
-                    <div className="bg-white rounded-[2.5rem] border border-dashed border-gray-200 h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                        <FileText size={64} className="opacity-20" />
-                        <p>Selecciona un paciente para ver su historia clínica</p>
-                    </div>
-                )}
+                </div>
+
+                <div className="overflow-x-auto">
+                    {loading ? (
+                        <div className="w-full">
+                            <div className="hidden md:block"><TableSkeleton /></div>
+                            <div className="md:hidden block"><CardSkeleton /></div>
+                        </div>
+                    ) : filteredPatients.length === 0 ? (
+                        <EmptyState
+                            title="Sin pacientes asignados"
+                            description="Aún no tienes pacientes asignados. El administrador puede asignarte pacientes desde el panel de usuarios."
+                            icon={Users}
+                        />
+                    ) : (
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-50">
+                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Paciente</th>
+                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Contacto</th>
+                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Saldo Terapia</th>
+                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase font-bold text-right">Última Cita</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {filteredPatients.map((p) => (
+                                    <tr
+                                        key={p.id}
+                                        className="hover:bg-gray-50/50 transition-colors cursor-pointer group"
+                                        onClick={() => router.push(`/dashboard/psychologist/patients/${p.id}`)}
+                                    >
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-bold">
+                                                    {p.name?.charAt(0) || "P"}
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-800 flex items-center gap-2">
+                                                        {p.name}
+                                                        <ChevronRight size={14} className="text-gray-300 group-hover:translate-x-1 transition-transform" />
+                                                    </p>
+                                                    <p className="text-[10px] text-gray-400 uppercase tracking-tighter">ID: {p.id.slice(-6)}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex flex-col gap-1 text-[11px] text-gray-500">
+                                                <span className="flex items-center gap-1"><Mail size={12} className="text-gray-300" /> {p.email}</span>
+                                                {p.phone && <span className="flex items-center gap-1"><Phone size={12} className="text-gray-300" /> {p.phone}</span>}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className={`px-3 py-1.5 rounded-xl text-xs font-bold ${p.therapyBalance > 0 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"
+                                                }`}>
+                                                {p.therapyBalance} sesiones
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            {p.lastAppointment ? (
+                                                <div className="text-xs">
+                                                    <p className="font-bold text-gray-700">{format(new Date(p.lastAppointment.startTime), 'd MMM, yyyy', { locale: es })}</p>
+                                                    <p className="text-gray-400">{p.lastAppointment.status}</p>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-gray-300 italic">Sin citas registradas</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
+

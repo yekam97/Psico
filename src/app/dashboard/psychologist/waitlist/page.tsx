@@ -8,17 +8,41 @@ import {
     Calendar as CalendarIcon,
     Search,
     ArrowUpCircle,
-    MoreVertical
+    MoreVertical,
+    Loader2,
+    CalendarCheck
 } from "lucide-react";
+import { useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { WaitlistSkeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { ClipboardX } from "lucide-react";
 
 export default function WaitlistPage() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [waitlist, setWaitlist] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const waitlist = [
-        { id: "w1", name: "Laura Méndez", addedDate: "2026-03-01", priority: "Alta", reason: "Ansiedad aguda", preferredSchedule: "Mañanas" },
-        { id: "w2", name: "Felipe Soto", addedDate: "2026-02-28", priority: "Media", reason: "Seguimiento", preferredSchedule: "Tardes" },
-        { id: "w3", name: "Beatriz Torres", addedDate: "2026-03-02", priority: "Baja", reason: "Primera vez", preferredSchedule: "Cualquier horario" },
-    ];
+    const fetchWaitlist = async () => {
+        try {
+            const response = await axios.get("/api/psychologist/waitlist");
+            setWaitlist(response.data);
+        } catch (error) {
+            console.error("Error fetching waitlist:", error);
+            toast.error("Error al cargar la lista de espera");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchWaitlist();
+    }, []);
+
+    const filteredWaitlist = waitlist.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -43,48 +67,58 @@ export default function WaitlistPage() {
                 </div>
 
                 <div className="space-y-4">
-                    {waitlist.map((item) => (
-                        <div key={item.id} className="p-6 rounded-[2rem] bg-gray-50 hover:bg-white border border-transparent hover:border-gray-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group shadow-none hover:shadow-md">
-                            <div className="flex gap-4 items-center">
-                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary border border-gray-100">
-                                    <Users size={24} />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h4 className="font-semibold text-gray-800">{item.name}</h4>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${item.priority === 'Alta' ? 'bg-secondary/10 text-secondary' :
-                                            item.priority === 'Media' ? 'bg-tertiary/10 text-tertiary' : 'bg-blue-50 text-blue-500'
-                                            }`}>
-                                            {item.priority}
-                                        </span>
+                    {loading ? (
+                        <WaitlistSkeleton />
+                    ) : filteredWaitlist.length === 0 ? (
+                        <EmptyState
+                            title="Sin pacientes en lista"
+                            description="La lista de espera está vacía actualmente. Aparecerán aquí los pacientes que tienen preferencia de horarios y no alcanzaron espacio."
+                            icon={ClipboardX}
+                        />
+                    ) : (
+                        filteredWaitlist.map((item) => (
+                            <div key={item.id} className="p-6 rounded-[2rem] bg-gray-50 hover:bg-white border border-transparent hover:border-gray-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group shadow-none hover:shadow-md">
+                                <div className="flex gap-4 items-center">
+                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary border border-gray-100">
+                                        <Users size={24} />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                                        <Clock size={12} /> Esperando desde el {item.addedDate}
-                                    </p>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h4 className="font-semibold text-gray-800">{item.name}</h4>
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${item.priority === 'Alta' ? 'bg-secondary/10 text-secondary' :
+                                                item.priority === 'Media' ? 'bg-tertiary/10 text-tertiary' : 'bg-blue-50 text-blue-500'
+                                                }`}>
+                                                {item.priority}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                            <Clock size={12} /> Esperando desde el {new Date(item.addedDate).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 px-4">
+                                    <p className="text-xs text-gray-500 font-medium italic">"{item.reason}"</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <CalendarIcon size={12} className="text-primary" />
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Preferencia: {item.preferredSchedule}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all">
+                                        <ArrowUpCircle size={16} /> Asignar Cita
+                                    </button>
+                                    <button className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-primary transition-colors">
+                                        <MessageSquare size={18} />
+                                    </button>
+                                    <button className="p-2 text-gray-300 hover:text-gray-600 transition-colors">
+                                        <MoreVertical size={20} />
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="flex-1 px-4">
-                                <p className="text-xs text-gray-500 font-medium italic">"{item.reason}"</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <CalendarIcon size={12} className="text-primary" />
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase">Preferencia: {item.preferredSchedule}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all">
-                                    <ArrowUpCircle size={16} /> Asignar Cita
-                                </button>
-                                <button className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-primary transition-colors">
-                                    <MessageSquare size={18} />
-                                </button>
-                                <button className="p-2 text-gray-300 hover:text-gray-600 transition-colors">
-                                    <MoreVertical size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 <div className="pt-6 border-t border-gray-50">

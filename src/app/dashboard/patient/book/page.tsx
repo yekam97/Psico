@@ -11,20 +11,45 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function BookAppointmentPage() {
     const [step, setStep] = useState(1);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
     const [modality, setModality] = useState<"VIRTUAL" | "IN_PERSON">("VIRTUAL");
+    const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const router = useRouter();
 
-    const doctors = [
-        { id: 1, name: "Dr. Roberto Casas", specialty: "Terapia Cognitivo-Conductual", rating: 4.9 },
-        { id: 2, name: "Dra. Elena Ruiz", specialty: "Psicología Infantil", rating: 5.0 },
-        { id: 3, name: "Dr. Marcos Peña", specialty: "Psicoanálisis", rating: 4.8 },
-    ];
+    const [doctors, setDoctors] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     const timeSlots = ["08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "03:00 PM", "04:00 PM"];
+
+    const fetchPsychologists = async () => {
+        try {
+            const response = await axios.get("/api/patient/psychologists");
+            setDoctors(response.data);
+        } catch (error) {
+            console.error("Error fetching psychologists:", error);
+            toast.error("Error al cargar psicólogos asignados");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPsychologists();
+    }, []);
+
+    const handleNext = (doc: any) => {
+        setSelectedDoc(doc);
+        setStep(2);
+    };
 
     return (
         <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
@@ -58,22 +83,33 @@ export default function BookAppointmentPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {doctors.map((doc) => (
-                                <div
-                                    key={doc.id}
-                                    onClick={() => { setSelectedDoc(doc); setStep(2); }}
-                                    className="p-6 rounded-3xl border border-gray-100 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-12 h-12 bg-sage/20 rounded-2xl flex items-center justify-center text-primary font-bold">
-                                            {doc.name.charAt(4)}
-                                        </div>
-                                        <span className="text-xs font-bold text-sage">⭐ {doc.rating}</span>
-                                    </div>
-                                    <h4 className="font-semibold text-gray-800">{doc.name}</h4>
-                                    <p className="text-sm text-gray-500 mt-1">{doc.specialty}</p>
+                            {loading ? (
+                                <div className="col-span-full flex justify-center py-20">
+                                    <Loader2 className="animate-spin text-primary" size={40} />
                                 </div>
-                            ))}
+                            ) : doctors.length === 0 ? (
+                                <div className="col-span-full text-center py-20 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200">
+                                    <p className="text-gray-500">No tienes psicólogos asignados actualmente.</p>
+                                    <p className="text-xs text-gray-400 mt-2">Contacta con administración para que te asignen un profesional.</p>
+                                </div>
+                            ) : (
+                                doctors.map((doc) => (
+                                    <div
+                                        key={doc.id}
+                                        onClick={() => handleNext(doc)}
+                                        className="p-6 rounded-3xl border border-gray-100 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group"
+                                    >
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="w-12 h-12 bg-sage/20 rounded-2xl flex items-center justify-center text-primary font-bold uppercase">
+                                                {doc.name.charAt(0)}
+                                            </div>
+                                            <span className="text-xs font-bold text-sage">⭐ {doc.rating}</span>
+                                        </div>
+                                        <h4 className="font-semibold text-gray-800">{doc.name}</h4>
+                                        <p className="text-sm text-gray-500 mt-1">{doc.specialty}</p>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
@@ -105,8 +141,12 @@ export default function BookAppointmentPage() {
                                 {timeSlots.map((time) => (
                                     <button
                                         key={time}
-                                        onClick={() => setStep(3)}
-                                        className="py-3 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-all text-sm font-medium bg-gray-50 hover:bg-white"
+                                        type="button"
+                                        onClick={() => setSelectedTime(time)}
+                                        className={`py-3 rounded-xl border transition-all text-sm font-medium ${selectedTime === time
+                                                ? 'border-primary text-primary bg-primary/5'
+                                                : 'border-gray-100 hover:border-primary hover:text-primary bg-gray-50 hover:bg-white'
+                                            }`}
                                     >
                                         {time}
                                     </button>
@@ -114,7 +154,41 @@ export default function BookAppointmentPage() {
                             </div>
                         </div>
 
-                        <button onClick={() => setStep(1)} className="text-sm text-primary hover:underline font-medium">Volver a Profesionales</button>
+                        <button
+                            disabled={submitting || !selectedTime}
+                            onClick={async () => {
+                                if (!selectedTime) {
+                                    toast.error("Por favor selecciona un horario");
+                                    return;
+                                }
+                                setSubmitting(true);
+                                try {
+                                    // Convert "09:00 AM" format to 24h
+                                    const [timePart, period] = selectedTime.split(' ');
+                                    let [hours, minutes] = timePart.split(':').map(Number);
+                                    if (period === 'PM' && hours !== 12) hours += 12;
+                                    if (period === 'AM' && hours === 12) hours = 0;
+                                    const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                                    await axios.post("/api/patient/appointments", {
+                                        psychologistId: selectedDoc.id,
+                                        startTime: `${selectedDate}T${time24}:00`,
+                                        type: modality,
+                                        notes: "Cita agendada por el paciente"
+                                    });
+                                    setStep(3);
+                                } catch (error: any) {
+                                    toast.error(error.response?.data?.error || "Error al agendar cita");
+                                } finally {
+                                    setSubmitting(false);
+                                }
+                            }}
+                            className="w-full bg-primary text-white py-4 rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-lg flex items-center justify-center gap-2"
+                        >
+                            {submitting && <Loader2 className="animate-spin" size={20} />}
+                            Confirmar Cita
+                        </button>
+
+                        <button onClick={() => setStep(1)} className="text-sm text-primary hover:underline font-medium block mx-auto">Volver a Profesionales</button>
                     </div>
                 )}
 
@@ -127,10 +201,10 @@ export default function BookAppointmentPage() {
                         <div className="bg-gray-50 p-6 rounded-3xl max-w-sm mx-auto text-left">
                             <p className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Detalles de la Cita</p>
                             <p className="font-bold text-gray-800">{selectedDoc?.name}</p>
-                            <p className="text-sm text-primary font-medium mt-1">Hoy, 04:00 PM</p>
+                            <p className="text-sm text-primary font-medium mt-1">Hoy, 09:00 AM</p>
                             <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
                                 {modality === 'VIRTUAL' ? <Video size={14} /> : <MapPin size={14} />}
-                                {modality === 'VIRTUAL' ? 'Virtual (Link enviado por Email)' : 'Presencial (Sede Norte)'}
+                                {modality === 'VIRTUAL' ? 'Virtual (Link enviado por Email)' : 'Presencial (Sede Centro)'}
                             </p>
                         </div>
                         <div className="pt-8">
@@ -154,6 +228,6 @@ export default function BookAppointmentPage() {
           100% { transform: scale(1); }
         }
       `}</style>
-        </div>
+        </div >
     );
 }

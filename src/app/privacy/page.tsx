@@ -9,7 +9,7 @@ export default function PrivacyPage() {
         <div className="bg-white min-h-screen">
             {/* Main Navigation */}
             <nav className="flex items-center justify-between px-8 py-6 md:px-16 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-50">
-                <Logo />
+                <Logo brandSubtitle="Management" />
                 <div className="flex gap-8 items-center text-sm font-medium text-gray-500">
                     <Link href="/" className="flex items-center gap-2 hover:text-primary transition-colors">
                         <ArrowLeft size={16} /> Inicio

@@ -1,12 +1,173 @@
-// Prisma Schema for Psychology SaaS (Multi-tenant)
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Company {
+  id              String         @id @default(cuid())
+  name            String
+  domain          String         @unique
+  logoUrl         String?
+  primaryColor    String         @default("#24343B")
+  secondaryColor  String         @default("#EBA554")
+  tertiaryColor   String         @default("#948472")
+  businessHours   Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  physicalRooms   Int            @default(1)
+  appointments    Appointment[]
+  availabilities  Availability[]
+  clinicalNotes   ClinicalNote[]
+  messages        Message[]
+  users           User[]
+  waitlistEntries Waitlist[]
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  role             Role      @default(PATIENT)
+  name             String?
+  companyId        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  receivedMessages Message[] @relation("ReceivedMessages")
+  sentMessages     Message[] @relation("SentMessages")
+  profile          Profile?
+  company          Company   @relation(fields: [companyId], references: [id])
+}
+
+model Profile {
+  id                    String                @id @default(cuid())
+  userId                String                @unique
+  phone                 String?
+  specialty             String?
+  bio                   String?
+  hasConsented          Boolean               @default(false)
+  appointments          Appointment[]         @relation("PatientAppointments")
+  doctorEvents          Appointment[]         @relation("DoctorAppointments")
+  availabilities        Availability[]
+  patientNotes          ClinicalNote[]        @relation("PatientNotes")
+  doctorNotes           ClinicalNote[]        @relation("DoctorNotes")
+  assignedPsychologists PatientPsychologist[] @relation("PatientAssignments")
+  assignedPatients      PatientPsychologist[] @relation("PsychologistAssignments")
+  user                  User                  @relation(fields: [userId], references: [id])
+  therapyInventory      TherapyInventory?
+  waitlistEntries       Waitlist[]
+}
+
+model PatientPsychologist {
+  id             String   @id @default(cuid())
+  patientId      String
+  psychologistId String
+  createdAt      DateTime @default(now())
+  patient        Profile  @relation("PatientAssignments", fields: [patientId], references: [id])
+  psychologist   Profile  @relation("PsychologistAssignments", fields: [psychologistId], references: [id])
+
+  @@unique([patientId, psychologistId])
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  companyId          String
+  patientId          String
+  psychologistId     String
+  startTime          DateTime
+  endTime            DateTime
+  status             AppointmentStatus @default(SCHEDULED)
+  type               AppointmentType   @default(IN_PERSON)
+  meetingLink        String?
+  googleEventId      String?
+  notes              String?
+  cancellationReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  company            Company           @relation(fields: [companyId], references: [id])
+  patient            Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
+  psychologist       Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
+}
+
+model TherapyInventory {
+  id            String               @id @default(cuid())
+  patientId     String               @unique
+  totalAssigned Int                  @default(0)
+  remaining     Int                  @default(0)
+  updatedAt     DateTime             @updatedAt
+  patient       Profile              @relation(fields: [patientId], references: [id])
+  history       TherapyTransaction[]
+}
+
+model TherapyTransaction {
+  id            String                 @id @default(cuid())
+  inventoryId   String
+  amount        Int
+  type          TherapyTransactionType
+  appointmentId String?
+  notes         String?
+  createdAt     DateTime               @default(now())
+  inventory     TherapyInventory       @relation(fields: [inventoryId], references: [id])
+}
+
+model Availability {
+  id             String  @id @default(cuid())
+  companyId      String
+  psychologistId String
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  isActive       Boolean @default(true)
+  company        Company @relation(fields: [companyId], references: [id])
+  psychologist   Profile @relation(fields: [psychologistId], references: [id])
+}
+
+model ClinicalNote {
+  id             String   @id @default(cuid())
+  companyId      String
+  patientId      String
+  psychologistId String
+  content        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  company        Company  @relation(fields: [companyId], references: [id])
+  patient        Profile  @relation("PatientNotes", fields: [patientId], references: [id])
+  psychologist   Profile  @relation("DoctorNotes", fields: [psychologistId], references: [id])
+}
+
+model Waitlist {
+  id             String    @id @default(cuid())
+  companyId      String
+  patientId      String
+  psychologistId String
+  preferredDate  DateTime?
+  createdAt      DateTime  @default(now())
+  company        Company   @relation(fields: [companyId], references: [id])
+  patient        Profile   @relation(fields: [patientId], references: [id])
+}
+
+model Consent {
+  id         String   @id @default(cuid())
+  userId     String
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+  version    String
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  senderId   String
+  receiverId String
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 enum Role {
@@ -27,112 +188,9 @@ enum AppointmentType {
   VIRTUAL
 }
 
-model Company {
-  id              String      @id @default(cuid())
-  name            String
-  domain          String      @unique // e.g. "minerva"
-  logoUrl         String?
-  primaryColor    String      @default("#24343B")
-  secondaryColor  String      @default("#EBA554")
-  tertiaryColor   String      @default("#948472")
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  users           User[]
-  appointments    Appointment[]
-  clinicalNotes   ClinicalNote[]
-  waitlistEntries Waitlist[]
-  availabilities  Availability[]
-}
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  role          Role      @default(PATIENT)
-  name          String?
-  companyId     String
-  company       Company   @relation(fields: [companyId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  profile       Profile?
-}
-
-model Profile {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id])
-  phone           String?
-  specialty       String?   // For Psychologists
-  bio             String?   // For Psychologists
-  patientNotes    ClinicalNote[] @relation("PatientNotes")
-  doctorNotes     ClinicalNote[] @relation("DoctorNotes")
-  appointments    Appointment[]  @relation("PatientAppointments")
-  doctorEvents    Appointment[]  @relation("DoctorAppointments")
-  availabilities  Availability[]
-  waitlistEntries Waitlist[]
-  hasConsented    Boolean   @default(false)
-}
-
-model Appointment {
-  id              String            @id @default(cuid())
-  companyId       String
-  company         Company           @relation(fields: [companyId], references: [id])
-  patientId       String
-  patient         Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
-  psychologistId  String
-  psychologist    Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
-  startTime       DateTime
-  endTime         DateTime
-  status          AppointmentStatus @default(SCHEDULED)
-  type            AppointmentType   @default(IN_PERSON)
-  meetingLink     String?           // Google Meet URL
-  googleEventId   String?           // For Sync
-  notes           String?           // General appointment notes
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-}
-
-model Availability {
-  id              String    @id @default(cuid())
-  companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
-  psychologistId  String
-  psychologist    Profile   @relation(fields: [psychologistId], references: [id])
-  dayOfWeek       Int       // 0-6 (Sunday-Saturday)
-  startTime       String    // "08:00"
-  endTime       String    // "17:00"
-  isActive        Boolean   @default(true)
-}
-
-model ClinicalNote {
-  id              String    @id @default(cuid())
-  companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
-  patientId       String
-  patient         Profile   @relation("PatientNotes", fields: [patientId], references: [id])
-  psychologistId  String
-  psychologist    Profile   @relation("DoctorNotes", fields: [psychologistId], references: [id])
-  content         String    // Should be encrypted in production
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-model Waitlist {
-  id              String    @id @default(cuid())
-  companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
-  patientId       String
-  patient         Profile   @relation(fields: [patientId], references: [id])
-  psychologistId  String
-  preferredDate   DateTime?
-  createdAt       DateTime  @default(now())
-}
-
-model Consent {
-  id              String    @id @default(cuid())
-  userId          String
-  acceptedAt      DateTime  @default(now())
-  ipAddress       String?
-  version         String    // e.g., "1.0"
+enum TherapyTransactionType {
+  PURCHASE
+  SESSION_COMPLETED
+  ADMIN_ADJUSTMENT
+  REFUND
 }
