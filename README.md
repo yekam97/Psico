@@ -67,9 +67,9 @@ npm run dev
 - [ ] **Admin > Reporte semanal** — conectar a `/api/admin/reports`
 - [x] **Admin > Terapias** — historial de terapias funciona; agregar saldo de citas por paciente funciona
 - [ ] **Admin > Usuarios recientes** — listar psicólogos con teléfono
-- [ ] **Psicólogo > Calendario** — eventos del día a `/api/psychologist/appointments`
-- [ ] **Psicólogo > Próximas citas** — conectar a `/api/psychologist/appointments`
-- [ ] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
+- [x] **Psicólogo > Calendario** — eventos del día a `/api/psychologist/appointments`
+- [x] **Psicólogo > Próximas citas** — conectar a `/api/psychologist/appointments`
+- [x] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
 - [ ] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
 - [ ] **Psicólogo > Lista de espera** — conectar a `/api/psychologist/waitlist`
 - [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; ⚠️ no filtra por disponibilidad del psicólogo
@@ -91,10 +91,10 @@ npm run dev
 
 - [ ] **Disponibilidad del psicólogo** — guardar horarios y filtrar slots en el booking (confirmado: el agendamiento actual no respeta disponibilidad)
 - [ ] **Confirmación/rechazo de cita** — psicólogo aprueba o rechaza con razón visible al paciente
-- [ ] **Track de citas en calendario** — marcar si se realizó o no (con razón si no se hizo)
+- [ ] **Track de citas en calendario** — marcar si se realizó o no (con razón si no se hizo) (validar obligatoriedad del campo)
 - [ ] **Tip de bienestar** — contenido dinámico para vista del psicólogo
 - [ ] **Notificación de sesiones por vencer** — alerta cuando quedan pocas sesiones pagadas
-- [ ] **Descarga de reportes** — exportar reporte semanal en PDF (opcional)
+- [x] **Descarga de reportes** — exportar reporte semanal en CSV (opcional)
 - [ ] **Responsive mobile** — ajuste de vistas para pantallas pequeñas
 
 ---
@@ -121,44 +121,46 @@ Multi-tenant: cada compañía tiene dominio y branding propio (colores, logo) en
 
 Datos para login:
 
-Rol	Email	Password
-Admin	admin@minerva.com	123
-Psicólogo	psicologo@minerva.com	123
-Paciente	paciente@minerva.com	123
+| Rol | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@minerva.com` | `123` |
+| Psicólogo | `psicologo@minerva.com` | `123` |
+| Paciente | `paciente@minerva.com` | `123` |
+| Admin | `nicolay.dev@outlook.com` | `123456` |
+| Paciente | `nicolay.jg@outlook.com` | `123456` |
+| Psicólogo | `ncly.jg@gamil.com` | `123456` |
+| Paciente | `ncly2.jg@gamil.com` | `123456` |
 
 
 ### 🐛 Bugs confirmados
 
-- [ ] **Landing — popup fantasma:** Al cargar la página de inicio aparece un popup de "nueva cita" sin que el usuario lo haya disparado.
-- [ ] **Landing — formulario de contacto roto:** El botón de envío no despacha ningún correo.
+- [ ] **Landing — popup fantasma:** Se reportó popup de "nueva cita" al cargar la home. `src/app/page.tsx` es Server Component puro sin modales — el origen debe estar en un componente hijo o en el layout. Requiere investigación adicional.
+- [ ] **Landing — formulario de contacto roto:** El botón de envío no despacha ningún correo. Confirmado por código: no existe `nodemailer`, `resend` ni ningún SDK de email en las dependencias del proyecto. La funcionalidad no está implementada.
 - [ ] **Landing — texto no copiable:** El email y el teléfono de contacto no se pueden seleccionar ni copiar.
-- [ ] **Perfil — subir imagen no funciona:** El botón de carga de imagen en "Editar perfil" no hace nada.
+- [ ] **Perfil — subir imagen no funciona:** El botón de carga de imagen en "Editar perfil" no hace nada. Confirmado: no existe endpoint de upload ni integración con ningún servicio de almacenamiento (S3, Cloudinary, etc.).
+- [ ] **Recordatorios de citas — UI sin backend:** Los toggles de recordatorio en Admin > Ajustes son solo decorativos. Confirmado por código: `src/app/api/admin/settings` no guarda ningún campo de recordatorio y no existe ningún cron job, worker ni integración de email/notificaciones en todo el proyecto.
+- [ ] **Badge "Verificado" — hardcodeado:** El badge de "Verificado" en la vista de perfil es texto estático (`src/app/dashboard/profile/page.tsx`). No existe el campo `verified` ni `isVerified` en el schema de Prisma. No representa ningún estado real.
 
 ---
 
 ### ⚠️ Decisiones de diseño pendientes
 
-- [ ] **Protección del último admin:** Actualmente es posible eliminar todos los usuarios admin. ¿Debe bloquearse si solo queda uno?
-- [ ] **Alcance del admin en multi-tenant:** ¿Un admin tiene acceso únicamente al centro al que pertenece, o a todos los centros de la plataforma? Existe la entidad en BD de centro psicologicó?
-- [ ] **Agendamiento sin saldo (paciente):** Un paciente sin saldo puede solicitar citas. ¿Es el comportamiento esperado o debe bloquearse?
+- [ ] **Protección del último admin:** Confirmado por código: el endpoint DELETE de usuarios (`src/app/api/admin/users/[id]/route.ts`) no verifica cuántos admins quedan activos antes de eliminar. Se puede borrar el último admin sin restricción.
+- [ ] **Agendamiento sin saldo (paciente):** Confirmado por código: en `src/app/api/patient/appointments/route.ts` la cita se crea aunque `remaining = 0`. Incluso hay un comentario en el código que dice `"maybe we shouldn't allow booking?"` — la decisión quedó pendiente. Definir si se bloquea o se permite con advertencia.
 - [ ] **Agendamiento sin saldo (admin):** ¿El admin puede agendar citas para un paciente sin saldo? ¿O debe validarse el saldo antes de permitirlo?
 - [ ] **Vista por defecto del admin:** Al ingresar, el admin llega a una pantalla que no es la más útil. Se sugiere que la vista inicial sea la lista de pacientes.
 - [ ] **Acceso rápido para agendar (admin):** Programar citas desde la vista admin no es ágil. Se propone agregar un acceso directo desde el dashboard o la lista de pacientes.
 - [ ] **Cargar saldo desde más pantallas:** El saldo de citas solo se puede cargar desde Admin > Terapias. Se propone habilitarlo también desde la edición de paciente y desde la lista de pacientes.
-- [ ] **Edición de marca por múltiples admins:** ¿Si dos admins editan la configuración de marca color y diseño del centro de psicología, cuál prevalece?
-- [ ] **Modelo de perfil del admin:** ¿Los perfiles de admin están asociados a un centro específico, a un perfil de psicólogo/paciente, o a una entidad propia (centro logístico)?
-- [ ] **Badge "Verificado" en perfil:** Existe un badge que dice "Verificado" en la vista de perfil, pero no queda claro qué certifica: ¿verificación de correo electrónico o validación como profesional de salud? Definir qué representa y si tiene lógica real detrás o es solo decorativo.
+- [ ] **Edición de marca por múltiples admins:** ¿Si dos admins editan la configuración de marca del centro al mismo tiempo, cuál prevalece? No hay control de concurrencia.
 
 ---
 
 ### 🔍 Validaciones pendientes
 
-- [ ] **Cascade al eliminar paciente:** Al eliminar un paciente, ¿se eliminan automáticamente sus citas futuras del sistema y de la agenda del psicólogo asignado?
-- [ ] **Chat en tiempo real entre sesiones distintas:** Confirmar que el chat funciona correctamente cuando psicólogo y paciente están conectados desde computadores diferentes al mismo tiempo.
-- [ ] **Recordatorios de citas:** En Admin > Ajustes existe una configuración de recordatorios. Verificar si realmente despacha notificaciones o si es solo UI sin backend conectado.
-- [ ] **Logo por defecto de la empresa:** Validar qué imagen o placeholder se muestra cuando una empresa no ha configurado su logo.
-- [ ] **Validación de formularios:** Revisar que todos los formularios del sistema tengan validación en frontend (campos requeridos, formatos, longitudes) para evitar envíos inválidos.
+- [ ] **Cascade al eliminar paciente:** Funciona en la práctica: el DELETE ejecuta una transacción manual que borra `patientPsychologist`, `therapyInventory`, `appointment`, `clinicalNote`, `availability`, `waitlist`, `profile` y finalmente `user`. Sin embargo, el schema de Prisma no tiene `onDelete: Cascade`, por lo que una eliminación directa fuera de esta ruta dejaría huérfanos. Considerar agregar el cascade al schema.
+- [ ] **Chat entre sesiones distintas:** El chat usa polling HTTP cada 5 segundos (`src/components/chat/ChatWidget.tsx`). No hay WebSockets ni Server-Sent Events. Latencia mínima de 5s. Funciona entre computadores distintos pero no es en tiempo real.
 - [ ] **Email de contacto de la landing:** Verificar si `hola@healthsaas.com` (o el dominio configurado) está activo y recibe mensajes.
+- [ ] **Validación de formularios:** Confirmado por código: los formularios solo usan el atributo HTML nativo `required`. No hay `zod`, `react-hook-form`, `yup` ni ninguna librería de validación. Sin validación de formato de email, longitud de contraseña ni mensajes de error personalizados. Tampoco hay validación de schema en las API routes.
 - [ ] **Capacidad de la plataforma:** Revisar el plan actual de Vercel para conocer el límite de datos almacenados en Neon y el número de requests por minuto antes de degradación.
 
 ---
@@ -167,6 +169,8 @@ Paciente	paciente@minerva.com	123
 
 - ~~**Validación de correo duplicado:**~~ Al intentar crear un usuario con un correo ya registrado, el sistema lo rechaza correctamente.
 - ~~**Dónde se carga el saldo de citas:**~~ Se gestiona desde Admin > Terapias. Funciona correctamente.
+- ~~**Alcance del admin en multi-tenant:**~~ Confirmado por código: todas las queries de la API filtran por `companyId` extraído de la sesión. Un admin solo ve datos de su propio centro.
+- ~~**Logo por defecto de la empresa:**~~ Confirmado por código: `src/app/api/branding/route.ts` tiene tres niveles de fallback. Si no hay logo configurado, devuelve `logoUrl: null` y colores por defecto. El cliente siempre recibe una respuesta bien formada.
 
 ---
 
