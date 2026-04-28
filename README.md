@@ -1,107 +1,177 @@
-# TODO:
+# Minerva — SaaS de gestión para centros de psicología
 
-[] Plataforma - Soportar diseño responsive mobile
+**Stack:** Next.js 16 · Vercel (serverless functions) · Neon (PostgreSQL) · Prisma ORM · NextAuth JWT
 
-[x] LANDING - Landing page de HealthSaaS se debe limpiar realmente para lo que hacemos que es organizacieon, gestión y administración de centros de psicologia, nuestro nicho son piscologos y centros de psicologia.
+---
 
-[☓ ] LANDING - Refactor de página de "Nosotros"para que hable sobre HealthSaaS, con contacto en página de inicio, que sea lo más elemental. (De momento nuestro foco de clientes es el voz a voz)
+## Arquitectura
 
-[☓ ] LANDING - Volar página de servicios
-
-[☓ ] LANDING - Agregar clientes actuales a la página de Home
-
-[] BACKEND - Vista Admin - Crear servicio para crud de roles, usuarios
-
-[] FRONT - Vista Admin - Enlazar pantalla Gestión de Usuarios con BD y servicio de roles para listar, editar y crear Admins, Psicologo y Paciente
-
-[] FRONT - Vista Admin - Funcionalidad de formulario para CRUDs (Crear Usuario)
-
-[] FRONT - Vista Admin - Sumar funcionalidad de crud (tres botones) (Se debe poder asignar uno o máximo dos profesionales al paciente)
-
-[] FRONT - Vista Admin - Ocultar patalla de estadísticas
-
-[] FRONT - Vista Admin / General - Dashboard (Estadísiticas) con resumen para saber Total de Citas programadas del mes trasncurrido, gráfica de los últimos tres meses, pacientes activos (total registrados), crecimeinto de pacientes y citas, (eliminar tasa de ocupación)
-
-[] FRONT - Vista Admin / General - Reporte semanal, Citas virtuales y citas presenciales y cancelaciones (Poder ver que citas y la razón de la cancelación), descargar reporte con esos datos (opcional).
-
-[] FRONT - Vista Admin / General - Usuarios Recientes se pueden listar psicologos asociados con numeros de celular
-
-[] FRONT - Vista Admin / Perfil -  Notificaciones solo visible para roles de psicologos y pacientes, seccieon para subir logo y branding, en esta pantalla esta el formulario de edición de info del usuario con rol administrador, horario actual del centro de psicologo, para manejao del calendario
-
-[] FRONT - Vista Admin - Terapias asignadas (Pagadas o reservadas)
-
-[] BACKEND - Servicio de manejo de citas (Asociadas a un pasiciente con doctor)
-
-[] BACKEND - Servicio de manejo de estadisticas (Asociadas a un pasiciente con doctor)
-
-[] FRONT - Vista Psicologo - Funcionalidad del calendario enlazar con backend (Día)
-
-[] FRONT - Vista Psicologo - Funcionalidad del Próximas citas
-
-[] FRONT - Vista Psicologo - Funcionalidad Tip de Bienestar
-
-[] FRONT - Vista Psicologo - en el calendario se debe poder hacer track de las citas que se han realizado y si no se agrega una razón del porque no se hizo
-
-[] FRONT - Vista Psicologo - Enlazar funcionalidad de listado de usaruios con backend
-
-[] FRONT - Vista Psicologo - Enlazar funcionalidad de historial de notas por usaruio con backend
-
-[] FRONT - Vista Psicologo - Vista de confiramación o rechazo (razeon del rechazo) de citas para confirmar al paciente que ya se programó y acepto de acuerdo con la solicitud que se hizo.
-
-[] Rebranding cuando tengamos usarios
-
-[] Notificación de terapias ya pagadas por finalizar
-
-[] BACKEND - Servicio de manejo de notas por usuario, con fecha y texto con detalle
-
-### Requerimientos:
-
-Nos quedamos en vista de disponibilidad del psicologo
-
-- Roles que maneja la app: Administrador, Psicologo, Paciente
-
-- Estadisitica de citas rechazadas por psicologo *
-
-- Admin: CRUD de Psicologos (Especialidad) y Pacientes (Ocupación)
-
-- Aterrizar BD para branding del centro de psicología
-
-- la plataforma al momento de ser visualizada por un paciente/psicologo debe estar personalziada deacuerdo con el branding de el centro de psicologeia que asocio/registro el correo.
-
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```text
+Browser → Vercel (Next.js + API Routes) → Neon PostgreSQL (via Prisma)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Cada `src/app/api/**/route.ts` es una función serverless de Vercel. No hay microservicio externo — todo está en este repositorio.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup local
 
-## Learn More
+Crear `.env.local` con las variables del dashboard de Vercel (Settings > Environment Variables):
 
-To learn more about Next.js, take a look at the following resources:
+```env
+DATABASE_URL=        # Connection string de Neon
+NEXTAUTH_SECRET=     # Mismo valor que en Vercel
+NEXTAUTH_URL=http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Estado del proyecto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### ✅ Backend listo (API Routes operativas en Neon)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Endpoint | Métodos | Descripción |
+| --- | --- | --- |
+| `/api/auth/[...nextauth]` | POST | Auth con bcrypt + JWT (role, companyId, profileId) |
+| `/api/admin/users` | GET, POST | Listar y crear usuarios; asignación de psicólogos (máx. 2) |
+| `/api/admin/users/[id]` | PUT, DELETE | Editar/eliminar usuario con cleanup en cascada |
+| `/api/admin/stats` | GET | Citas del mes, pacientes activos, cancelaciones, gráfica 3 meses |
+| `/api/admin/reports` | GET | Reporte semanal: virtual vs presencial, cancelaciones con razón |
+| `/api/admin/therapy` | GET, POST | Inventario de sesiones por paciente y recargas |
+| `/api/admin/therapy/history/[patientId]` | GET | Historial de transacciones de terapia |
+| `/api/admin/appointments` | GET, PATCH | Citas desde vista admin |
+| `/api/admin/settings` | GET, PUT | Configuración del centro |
+| `/api/appointments/status` | PATCH | Cambiar estado de cita + descuento automático de sesión al completar |
+| `/api/patient/appointments` | POST | Agendar cita con validación de salas físicas disponibles |
+| `/api/patient/psychologists` | GET | Psicólogos disponibles para agendar |
+| `/api/patient/dashboard` | GET | Dashboard del paciente |
+| `/api/psychologist/appointments` | GET | Citas del día y próximas 30 días |
+| `/api/psychologist/patients` | GET | Pacientes asignados |
+| `/api/psychologist/notes/[patientId]` | GET, POST | Notas clínicas (valida asignación) |
+| `/api/psychologist/waitlist` | GET | Lista de espera |
+| `/api/branding` | GET | Branding multi-tenant por dominio |
+| `/api/chat/messages` | GET, POST | Mensajería interna |
+| `/api/chat/contacts` | GET | Contactos del chat |
+
+---
+
+### ⏳ Frontend: conectar vistas a las APIs (datos mockeados → reales)
+
+- [x] **Admin > Usuarios** — CRUD completo: crear admin/paciente/psicólogo, editar todos los roles, validación de correo duplicado, asociar y desasociar psicólogo a paciente
+- [ ] **Admin > Dashboard** — tarjetas y gráfica a `/api/admin/stats`
+- [ ] **Admin > Reporte semanal** — conectar a `/api/admin/reports`
+- [x] **Admin > Terapias** — historial de terapias funciona; agregar saldo de citas por paciente funciona
+- [ ] **Admin > Usuarios recientes** — listar psicólogos con teléfono
+- [ ] **Psicólogo > Calendario** — eventos del día a `/api/psychologist/appointments`
+- [ ] **Psicólogo > Próximas citas** — conectar a `/api/psychologist/appointments`
+- [ ] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
+- [ ] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
+- [ ] **Psicólogo > Lista de espera** — conectar a `/api/psychologist/waitlist`
+- [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; ⚠️ no filtra por disponibilidad del psicólogo
+- [ ] **Perfil** — ocultar Notificaciones para rol Admin; agregar sección de logo/branding
+
+---
+
+### ✅ Funcionalidades validadas en pruebas
+
+- [x] **Autenticación** — validación de email y contraseña para acceder a la plataforma
+- [x] **Chat entre usuarios** — funciona entre roles; cada rol solo ve sus propias conversaciones (psicólogo ve sus pacientes y admin del mismo centro; paciente solo ve sus chats)
+- [x] **Psicólogo > Cancelar citas** — el psicólogo puede cancelar sus propias citas
+- [x] **Psicólogo > Sesión completada** — botón de marcar sesión completada funciona correctamente
+- [x] **Descuento automático de saldo** — el saldo de citas del paciente se descuenta una vez el psicólogo marca la cita como completada
+
+---
+
+### ⏳ Funcionalidades sin implementar aún
+
+- [ ] **Disponibilidad del psicólogo** — guardar horarios y filtrar slots en el booking (confirmado: el agendamiento actual no respeta disponibilidad)
+- [ ] **Confirmación/rechazo de cita** — psicólogo aprueba o rechaza con razón visible al paciente
+- [ ] **Track de citas en calendario** — marcar si se realizó o no (con razón si no se hizo)
+- [ ] **Tip de bienestar** — contenido dinámico para vista del psicólogo
+- [ ] **Notificación de sesiones por vencer** — alerta cuando quedan pocas sesiones pagadas
+- [ ] **Descarga de reportes** — exportar reporte semanal en PDF (opcional)
+- [ ] **Responsive mobile** — ajuste de vistas para pantallas pequeñas
+
+---
+
+### ⏳ Landing (baja prioridad)
+
+- [ ] Limpiar copy para nicho de psicología
+- [ ] Actualizar página "Nosotros"
+- [ ] Eliminar página de Servicios
+- [ ] Agregar clientes actuales en Home
+
+---
+
+## Roles
+
+| Rol | Acceso |
+| --- | --- |
+| `ADMIN` | Usuarios, estadísticas, reportes, terapias, configuración |
+| `PSYCHOLOGIST` | Calendario, pacientes, notas clínicas, lista de espera |
+| `PATIENT` | Agendar citas, ver próximas citas |
+
+Multi-tenant: cada compañía tiene dominio y branding propio (colores, logo) en la tabla `Company`.
+
+
+Datos para login:
+
+Rol	Email	Password
+Admin	admin@minerva.com	123
+Psicólogo	psicologo@minerva.com	123
+Paciente	paciente@minerva.com	123
+
+
+### 🐛 Bugs confirmados
+
+- [ ] **Landing — popup fantasma:** Al cargar la página de inicio aparece un popup de "nueva cita" sin que el usuario lo haya disparado.
+- [ ] **Landing — formulario de contacto roto:** El botón de envío no despacha ningún correo.
+- [ ] **Landing — texto no copiable:** El email y el teléfono de contacto no se pueden seleccionar ni copiar.
+- [ ] **Perfil — subir imagen no funciona:** El botón de carga de imagen en "Editar perfil" no hace nada.
+
+---
+
+### ⚠️ Decisiones de diseño pendientes
+
+- [ ] **Protección del último admin:** Actualmente es posible eliminar todos los usuarios admin. ¿Debe bloquearse si solo queda uno?
+- [ ] **Alcance del admin en multi-tenant:** ¿Un admin tiene acceso únicamente al centro al que pertenece, o a todos los centros de la plataforma? Existe la entidad en BD de centro psicologicó?
+- [ ] **Agendamiento sin saldo (paciente):** Un paciente sin saldo puede solicitar citas. ¿Es el comportamiento esperado o debe bloquearse?
+- [ ] **Agendamiento sin saldo (admin):** ¿El admin puede agendar citas para un paciente sin saldo? ¿O debe validarse el saldo antes de permitirlo?
+- [ ] **Vista por defecto del admin:** Al ingresar, el admin llega a una pantalla que no es la más útil. Se sugiere que la vista inicial sea la lista de pacientes.
+- [ ] **Acceso rápido para agendar (admin):** Programar citas desde la vista admin no es ágil. Se propone agregar un acceso directo desde el dashboard o la lista de pacientes.
+- [ ] **Cargar saldo desde más pantallas:** El saldo de citas solo se puede cargar desde Admin > Terapias. Se propone habilitarlo también desde la edición de paciente y desde la lista de pacientes.
+- [ ] **Edición de marca por múltiples admins:** ¿Si dos admins editan la configuración de marca color y diseño del centro de psicología, cuál prevalece?
+- [ ] **Modelo de perfil del admin:** ¿Los perfiles de admin están asociados a un centro específico, a un perfil de psicólogo/paciente, o a una entidad propia (centro logístico)?
+- [ ] **Badge "Verificado" en perfil:** Existe un badge que dice "Verificado" en la vista de perfil, pero no queda claro qué certifica: ¿verificación de correo electrónico o validación como profesional de salud? Definir qué representa y si tiene lógica real detrás o es solo decorativo.
+
+---
+
+### 🔍 Validaciones pendientes
+
+- [ ] **Cascade al eliminar paciente:** Al eliminar un paciente, ¿se eliminan automáticamente sus citas futuras del sistema y de la agenda del psicólogo asignado?
+- [ ] **Chat en tiempo real entre sesiones distintas:** Confirmar que el chat funciona correctamente cuando psicólogo y paciente están conectados desde computadores diferentes al mismo tiempo.
+- [ ] **Recordatorios de citas:** En Admin > Ajustes existe una configuración de recordatorios. Verificar si realmente despacha notificaciones o si es solo UI sin backend conectado.
+- [ ] **Logo por defecto de la empresa:** Validar qué imagen o placeholder se muestra cuando una empresa no ha configurado su logo.
+- [ ] **Validación de formularios:** Revisar que todos los formularios del sistema tengan validación en frontend (campos requeridos, formatos, longitudes) para evitar envíos inválidos.
+- [ ] **Email de contacto de la landing:** Verificar si `hola@healthsaas.com` (o el dominio configurado) está activo y recibe mensajes.
+- [ ] **Capacidad de la plataforma:** Revisar el plan actual de Vercel para conocer el límite de datos almacenados en Neon y el número de requests por minuto antes de degradación.
+
+---
+
+### ✅ Resuelto en esta sesión
+
+- ~~**Validación de correo duplicado:**~~ Al intentar crear un usuario con un correo ya registrado, el sistema lo rechaza correctamente.
+- ~~**Dónde se carga el saldo de citas:**~~ Se gestiona desde Admin > Terapias. Funciona correctamente.
+
+---
+
+### 🚀 Features futuros
+
+- [ ] **Disponibilidad del psicólogo en el agendamiento:** La disponibilidad configurada por el psicólogo no se refleja en ninguna de las pantallas de agendamiento (admin, paciente ni psicólogo). Todas las franjas horarias aparecen disponibles siempre.
+- [ ] **Integración con Google Calendar:** Generar links de Google Meet automáticamente para las citas virtuales y sincronizar con el calendario personal del psicólogo.
+- [ ] **Notificaciones de citas vía WhatsApp:** Enviar recordatorios o confirmaciones de cita por WhatsApp a pacientes y psicólogos.
