@@ -64,16 +64,16 @@ npm run dev
 
 - [x] **Admin > Usuarios** — CRUD completo: crear admin/paciente/psicólogo, editar todos los roles, validación de correo duplicado, asociar y desasociar psicólogo a paciente
 - [ ] **Admin > Dashboard** — tarjetas y gráfica a `/api/admin/stats`
-- [ ] **Admin > Reporte semanal** — conectar a `/api/admin/reports`
+- [X] **Admin > Reporte semanal** — conectar a `/api/admin/reports`
 - [x] **Admin > Terapias** — historial de terapias funciona; agregar saldo de citas por paciente funciona
-- [ ] **Admin > Usuarios recientes** — listar psicólogos con teléfono
+- [X] **Admin > Usuarios recientes** — listar psicólogos con teléfono
 - [x] **Psicólogo > Calendario** — eventos del día a `/api/psychologist/appointments`
 - [x] **Psicólogo > Próximas citas** — conectar a `/api/psychologist/appointments`
 - [x] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
-- [ ] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
+- [X] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
 - [ ] **Psicólogo > Lista de espera** — conectar a `/api/psychologist/waitlist`
 - [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; ⚠️ no filtra por disponibilidad del psicólogo
-- [ ] **Perfil** — ocultar Notificaciones para rol Admin; agregar sección de logo/branding
+- [X] **Perfil** — Agregar sección de logo/branding
 
 ---
 
@@ -90,12 +90,18 @@ npm run dev
 ### ⏳ Funcionalidades sin implementar aún
 
 - [ ] **Disponibilidad del psicólogo** — guardar horarios y filtrar slots en el booking (confirmado: el agendamiento actual no respeta disponibilidad)
-- [ ] **Confirmación/rechazo de cita** — psicólogo aprueba o rechaza con razón visible al paciente
+- [X] **Confirmación/rechazo de cita** — psicólogo aprueba o rechaza con razón visible al paciente
 - [ ] **Track de citas en calendario** — marcar si se realizó o no (con razón si no se hizo) (validar obligatoriedad del campo)
 - [ ] **Tip de bienestar** — contenido dinámico para vista del psicólogo
 - [ ] **Notificación de sesiones por vencer** — alerta cuando quedan pocas sesiones pagadas
 - [x] **Descarga de reportes** — exportar reporte semanal en CSV (opcional)
 - [ ] **Responsive mobile** — ajuste de vistas para pantallas pequeñas
+- [ ] **Reformular lista de espera como citas prioritarias del día:** La lista de espera debe corresponderse a citas prioritarias que se agendan en el mismo día.
+- [ ] **Cita prioritaria desde el paciente:** El paciente puede marcar una cita como prioritaria al agendarla; se agenda en cualquier espacio pero entra en la lista de espera del psicólogo para ser confirmada o rechazada. Debe llegar una notificación y un badge al psicólogo indicando que tiene algo en lista de espera.
+- [ ] **Modal de razón de cancelación:** El popup actual de razón de cancelación debería ser un modal consistente con el de crear cita.
+- [ ] **Notificación al paciente cuando el psicólogo cancela:** Notificar con un mensaje al paciente cuando el psicólogo cancela una cita.
+- [ ] **Ventana de agendamiento con antelación máxima:** Se deben poder agendar citas en distintas fechas con un máximo de 2 meses de antelación para pacientes y 3 meses para el admin.
+- [ ] **Notificaciones por email/WhatsApp de citas próximas:** Agregar envío de notificaciones por email o WhatsApp al celular dependiendo de las citas próximas.
 
 ---
 
@@ -134,12 +140,17 @@ Datos para login:
 
 ### 🐛 Bugs confirmados
 
-- [ ] **Landing — popup fantasma:** Se reportó popup de "nueva cita" al cargar la home. `src/app/page.tsx` es Server Component puro sin modales — el origen debe estar en un componente hijo o en el layout. Requiere investigación adicional.
+- [ ] **Landing — popup fantasma:** Se reportó popup de "nueva cita" al cargar la home. `src/app/page.tsx` es Server Component puro sin modales — el origen debe estar en un componente hijo o en el layout. Requiere investigación adicional.(Se volara ese div mientras tanto, no es bug pero debereia estar mejor integrado con el diseño de la página)
 - [ ] **Landing — formulario de contacto roto:** El botón de envío no despacha ningún correo. Confirmado por código: no existe `nodemailer`, `resend` ni ningún SDK de email en las dependencias del proyecto. La funcionalidad no está implementada.
 - [ ] **Landing — texto no copiable:** El email y el teléfono de contacto no se pueden seleccionar ni copiar.
 - [ ] **Perfil — subir imagen no funciona:** El botón de carga de imagen en "Editar perfil" no hace nada. Confirmado: no existe endpoint de upload ni integración con ningún servicio de almacenamiento (S3, Cloudinary, etc.).
-- [ ] **Recordatorios de citas — UI sin backend:** Los toggles de recordatorio en Admin > Ajustes son solo decorativos. Confirmado por código: `src/app/api/admin/settings` no guarda ningún campo de recordatorio y no existe ningún cron job, worker ni integración de email/notificaciones en todo el proyecto.
+- [X] **Recordatorios de citas — UI sin backend:** Los toggles de recordatorio en Admin > Ajustes son solo decorativos. Confirmado por código: `src/app/api/admin/settings` no guarda ningún campo de recordatorio y no existe ningún cron job, worker ni integración de email/notificaciones en todo el proyecto.
 - [ ] **Badge "Verificado" — hardcodeado:** El badge de "Verificado" en la vista de perfil es texto estático (`src/app/dashboard/profile/page.tsx`). No existe el campo `verified` ni `isVerified` en el schema de Prisma. No representa ningún estado real.
+- [ ] **Contraste de fuentes en tema dark:** Revisar fuentes con bajo contraste en tema dark; validar si afecta otras vistas además de las identificadas.
+- [ ] **Notas del psicólogo — fuente sin contraste:** En la vista de notas del psicólogo la fuente no se visualiza en contraste con el fondo (blanco).
+- [ ] **Login — fuente con poco contraste en tema dark:** La fuente del login tiene poco contraste cuando se usa el tema dark.
+- [ ] **Concurrencia de citas en el mismo horario:** Revisar qué ocurre cuando dos pacientes diferentes intentan programar una cita a la misma hora con el mismo psicólogo.
+- [ ] **Hora programada inconsistente entre vistas:** La hora agendada no se guarda o visualiza correctamente; desde la vista del psicólogo aparece una hora diferente a la que el paciente programó.
 
 ---
 
@@ -147,11 +158,11 @@ Datos para login:
 
 - [ ] **Protección del último admin:** Confirmado por código: el endpoint DELETE de usuarios (`src/app/api/admin/users/[id]/route.ts`) no verifica cuántos admins quedan activos antes de eliminar. Se puede borrar el último admin sin restricción.
 - [ ] **Agendamiento sin saldo (paciente):** Confirmado por código: en `src/app/api/patient/appointments/route.ts` la cita se crea aunque `remaining = 0`. Incluso hay un comentario en el código que dice `"maybe we shouldn't allow booking?"` — la decisión quedó pendiente. Definir si se bloquea o se permite con advertencia.
-- [ ] **Agendamiento sin saldo (admin):** ¿El admin puede agendar citas para un paciente sin saldo? ¿O debe validarse el saldo antes de permitirlo?
-- [ ] **Vista por defecto del admin:** Al ingresar, el admin llega a una pantalla que no es la más útil. Se sugiere que la vista inicial sea la lista de pacientes.
-- [ ] **Acceso rápido para agendar (admin):** Programar citas desde la vista admin no es ágil. Se propone agregar un acceso directo desde el dashboard o la lista de pacientes.
-- [ ] **Cargar saldo desde más pantallas:** El saldo de citas solo se puede cargar desde Admin > Terapias. Se propone habilitarlo también desde la edición de paciente y desde la lista de pacientes.
-- [ ] **Edición de marca por múltiples admins:** ¿Si dos admins editan la configuración de marca del centro al mismo tiempo, cuál prevalece? No hay control de concurrencia.
+- [ ] **Agendamiento sin saldo (admin):** El admin solo debería poder de agendar citas cuando el paciente tiene saldo
+- [X] ~~**Vista por defecto del admin:** Al ingresar, el admin llega a una pantalla que no es la más útil. Se sugiere que la vista inicial sea la lista de pacientes.~~ (Fuera de scope: no es tan doliente y ya existe el botón para acceder de forma rápida a la pantalla de usuarios; el admin quiere ver el resumen fácilmente en su primera pantalla)
+- [X] ~~**Acceso rápido para agendar (admin):** Programar citas desde la vista admin no es ágil. Se propone agregar un acceso directo desde el dashboard o la lista de pacientes.~~ (Fuera de scope: no es tan doliente y ya existe el botón para acceder de forma rápida a la pantalla de usuarios; el admin quiere ver el resumen fácilmente en su primera pantalla)
+- [X] ~~**Cargar saldo desde más pantallas:** El saldo de citas solo se puede cargar desde Admin > Terapias. Se propone habilitarlo también desde la edición de paciente y desde la lista de pacientes.~~ (Fuera de scope: no es tan doliente y ya existe el botón para acceder de forma rápida a la pantalla de usuarios; el admin quiere ver el resumen fácilmente en su primera pantalla)
+- [X] ~~**Edición de marca por múltiples admins:** ¿Si dos admins editan la configuración de marca del centro al mismo tiempo, cuál prevalece? No hay control de concurrencia.~~ (Fuera de scope: no es tan prioritario por ahora, probablemente solo hay un admin o dos)
 
 ---
 
@@ -159,9 +170,10 @@ Datos para login:
 
 - [ ] **Cascade al eliminar paciente:** Funciona en la práctica: el DELETE ejecuta una transacción manual que borra `patientPsychologist`, `therapyInventory`, `appointment`, `clinicalNote`, `availability`, `waitlist`, `profile` y finalmente `user`. Sin embargo, el schema de Prisma no tiene `onDelete: Cascade`, por lo que una eliminación directa fuera de esta ruta dejaría huérfanos. Considerar agregar el cascade al schema.
 - [ ] **Chat entre sesiones distintas:** El chat usa polling HTTP cada 5 segundos (`src/components/chat/ChatWidget.tsx`). No hay WebSockets ni Server-Sent Events. Latencia mínima de 5s. Funciona entre computadores distintos pero no es en tiempo real.
-- [ ] **Email de contacto de la landing:** Verificar si `hola@healthsaas.com` (o el dominio configurado) está activo y recibe mensajes.
+- [ ] **Email de contacto de la landing:** Verificar si `hola@healthsaas.com` (o el dominio configurado) está activo y recibe mensajes. (Se dejará quemado de momento el email de nexus)
 - [ ] **Validación de formularios:** Confirmado por código: los formularios solo usan el atributo HTML nativo `required`. No hay `zod`, `react-hook-form`, `yup` ni ninguna librería de validación. Sin validación de formato de email, longitud de contraseña ni mensajes de error personalizados. Tampoco hay validación de schema en las API routes.
 - [ ] **Capacidad de la plataforma:** Revisar el plan actual de Vercel para conocer el límite de datos almacenados en Neon y el número de requests por minuto antes de degradación.
+- [ ] **Escalabilidad del calendario al ampliar antelación:** Cuando se habilite agendar a más días, revisar si la lista de citas actuales del psicólogo en su vista principal escala correctamente.
 
 ---
 
