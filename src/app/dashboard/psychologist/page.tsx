@@ -64,7 +64,7 @@ export default function PsychologistDashboard() {
             loading: 'Actualizando cita...',
             success: () => {
                 fetchDashboardData();
-                return status === 'COMPLETED' ? 'Sesión completada y descontada' : 'Cita cancelada correctamente';
+                return status === 'COMPLETED' ? 'Sesión marcada como completada' : 'Cita cancelada y sesión devuelta al saldo';
             },
             error: (err) => err.response?.data?.error || "Error al actualizar la cita"
         });

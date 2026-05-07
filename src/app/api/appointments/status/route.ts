@@ -42,29 +42,30 @@ export async function PATCH(req: NextRequest) {
                 }
             });
 
-            // If marked as COMPLETED and was not completed before, deduct therapy
-            if (status === "COMPLETED" && appointment.status !== "COMPLETED") {
+            // Sessions are deducted at booking time (see /api/patient/appointments).
+            // On cancellation from SCHEDULED, refund the session so the patient can rebook.
+            if (status === "CANCELLED" && appointment.status === "SCHEDULED") {
                 const inventory = appointment.patient.therapyInventory;
-                if (!inventory || inventory.remaining <= 0) {
-                    throw new Error("Patient has no available therapy sessions");
+                if (inventory) {
+                    await (tx as any).therapyInventory.update({
+                        where: { id: inventory.id },
+                        data: {
+                            remaining: { increment: 1 }
+                        }
+                    });
+
+                    await (tx as any).therapyTransaction.create({
+                        data: {
+                            inventoryId: inventory.id,
+                            amount: 1,
+                            type: "REFUND",
+                            appointmentId: id,
+                            notes: cancellationReason
+                                ? `Sesión devuelta por cancelación: ${cancellationReason}`
+                                : "Sesión devuelta por cancelación"
+                        }
+                    });
                 }
-
-                await (tx as any).therapyInventory.update({
-                    where: { id: inventory.id },
-                    data: {
-                        remaining: { decrement: 1 }
-                    }
-                });
-
-                await (tx as any).therapyTransaction.create({
-                    data: {
-                        inventoryId: inventory.id,
-                        amount: -1,
-                        type: "SESSION_COMPLETED",
-                        appointmentId: id,
-                        notes: "Sesión completada y descontada"
-                    }
-                });
             }
 
             return updated;

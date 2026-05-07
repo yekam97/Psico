@@ -48,7 +48,7 @@ npm run dev
 | `/api/admin/therapy/history/[patientId]` | GET | Historial de transacciones de terapia |
 | `/api/admin/appointments` | GET, PATCH | Citas desde vista admin |
 | `/api/admin/settings` | GET, PUT | Configuración del centro |
-| `/api/appointments/status` | PATCH | Cambiar estado de cita + descuento automático de sesión al completar |
+| `/api/appointments/status` | PATCH | Cambiar estado de cita; al cancelar desde SCHEDULED devuelve la sesión al saldo |
 | `/api/patient/appointments` | POST | Agendar cita con validación de salas físicas disponibles |
 | `/api/patient/psychologists` | GET | Psicólogos disponibles para agendar |
 | `/api/patient/dashboard` | GET | Dashboard del paciente |
@@ -85,7 +85,7 @@ npm run dev
 - [x] **Chat entre usuarios** — funciona entre roles; cada rol solo ve sus propias conversaciones (psicólogo ve sus pacientes y admin del mismo centro; paciente solo ve sus chats)
 - [x] **Psicólogo > Cancelar citas** — el psicólogo puede cancelar sus propias citas
 - [x] **Psicólogo > Sesión completada** — botón de marcar sesión completada funciona correctamente
-- [x] **Descuento automático de saldo** — el saldo de citas del paciente se descuenta una vez el psicólogo marca la cita como completada
+- [x] **Descuento automático de saldo** — el saldo de citas del paciente se descuenta al agendar y se devuelve si la cita se cancela
 
 ---
 
