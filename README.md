@@ -29,6 +29,8 @@ npm install
 npm run dev
 ```
 
+> **Nota para devs en red Meli/VPN:** usar `npm ci` en lugar de `npm install`. La red corporativa bloquea `registry.npmjs.org` y debe ir contra `https://npm.artifacts.furycloud.io/` (configurado en tu `~/.npmrc` global). El proyecto NO commitea `.npmrc` (está en `.gitignore`) para que cada dev use su config local. `npm install` re-resuelve dependencias y puede pedir versiones cuyo tarball Fury aún no replicó (ej. `recharts@3.8.1`); `npm ci` respeta el `package-lock.json` exacto y evita ese problema.
+
 ---
 
 ## Estado del proyecto
@@ -98,8 +100,8 @@ npm run dev
 - [ ] **Responsive mobile** — ajuste de vistas para pantallas pequeñas
 - [ ] **Reformular lista de espera como citas prioritarias del día:** La lista de espera debe corresponderse a citas prioritarias que se agendan en el mismo día.
 - [ ] **Cita prioritaria desde el paciente:** El paciente puede marcar una cita como prioritaria al agendarla; se agenda en cualquier espacio pero entra en la lista de espera del psicólogo para ser confirmada o rechazada. Debe llegar una notificación y un badge al psicólogo indicando que tiene algo en lista de espera.
-- [ ] **Modal de razón de cancelación:** El popup actual de razón de cancelación debería ser un modal consistente con el de crear cita.
-- [ ] **Notificación al paciente cuando el psicólogo cancela:** Notificar con un mensaje al paciente cuando el psicólogo cancela una cita.
+- [x] **Modal de razón de cancelación:** El popup actual de razón de cancelación debería ser un modal consistente con el de crear cita.
+- [x] **Notificación al paciente cuando el psicólogo cancela:** Notificar con un mensaje al paciente cuando el psicólogo cancela una cita.
 - [ ] **Ventana de agendamiento con antelación máxima:** Se deben poder agendar citas en distintas fechas con un máximo de 2 meses de antelación para pacientes y 3 meses para el admin.
 - [ ] **Notificaciones por email/WhatsApp de citas próximas:** Agregar envío de notificaciones por email o WhatsApp al celular dependiendo de las citas próximas.
 

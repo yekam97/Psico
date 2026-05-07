@@ -12,7 +12,8 @@ import {
     Loader2,
     Video,
     MapPin,
-    CalendarDays
+    CalendarDays,
+    X
 } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";
@@ -68,6 +69,29 @@ export default function PsychologistDashboard() {
             error: (err) => err.response?.data?.error || "Error al actualizar la cita"
         });
     };
+
+    const closeCancelModal = () => {
+        setCancellingId(null);
+        setCancelReason("");
+    };
+
+    const handleCancelSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!cancellingId || !cancelReason.trim()) return;
+
+        const id = cancellingId;
+        const reason = cancelReason.trim();
+        setUpdatingStatus(id);
+        closeCancelModal();
+
+        try {
+            await handleStatusUpdate(id, 'CANCELLED', reason);
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
+    const cancellingAppointment = data?.daily?.find((a: any) => a.id === cancellingId);
 
     if (loading) {
         return (
@@ -152,8 +176,8 @@ export default function PsychologistDashboard() {
                                                     <button
                                                         disabled={updatingStatus === appt.id}
                                                         onClick={() => {
-                                                            const reason = prompt("Indique el motivo de la cancelación:");
-                                                            if (reason) handleStatusUpdate(appt.id, 'CANCELLED', reason);
+                                                            setCancelReason("");
+                                                            setCancellingId(appt.id);
                                                         }}
                                                         className="p-4 rounded-2xl bg-red-50 text-red-400 hover:bg-red-400 hover:text-white transition-all border border-red-100"
                                                     >
@@ -211,6 +235,55 @@ export default function PsychologistDashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* Cancel Modal */}
+            {cancellingId && cancellingAppointment && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-red-50/30">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800">Cancelar Cita</h3>
+                                <p className="text-xs text-gray-500">{cancellingAppointment.patient.user.name} · {format(new Date(cancellingAppointment.startTime), "d 'de' MMMM, HH:mm", { locale: es })}</p>
+                            </div>
+                            <button onClick={closeCancelModal} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCancelSubmit} className="p-8 space-y-6">
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Motivo de la Cancelación</label>
+                                <textarea
+                                    required
+                                    autoFocus
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none text-sm"
+                                    placeholder="Indique el motivo de la cancelación..."
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                />
+                                <p className="text-[11px] text-gray-400 mt-2">El paciente verá este motivo en su agenda.</p>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={closeCancelModal}
+                                    className="flex-1 bg-gray-50 text-gray-600 py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all border border-gray-100"
+                                >
+                                    Volver
+                                </button>
+                                <button
+                                    disabled={!cancelReason.trim() || updatingStatus === cancellingId}
+                                    type="submit"
+                                    className="flex-1 bg-red-500 text-white py-4 rounded-2xl font-bold hover:bg-red-600 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {updatingStatus === cancellingId && <Loader2 className="animate-spin" size={18} />}
+                                    Confirmar Cancelación
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -22,7 +24,7 @@ export async function PATCH(req: NextRequest) {
         const appointment = await (prisma as any).appointment.findFirst({
             where: { id, companyId },
             include: {
-                patient: { include: { therapyInventory: true } }
+                patient: { include: { therapyInventory: true, user: true } }
             }
         });
 
@@ -67,6 +69,27 @@ export async function PATCH(req: NextRequest) {
 
             return updated;
         });
+
+        if (status === "CANCELLED" && appointment.status !== "CANCELLED") {
+            try {
+                const senderId = (session.user as any).id;
+                const receiverId = appointment.patient.user.id;
+                const dateStr = format(new Date(appointment.startTime), "EEEE d 'de' MMMM 'a las' h:mm a", { locale: es });
+                const reasonText = cancellationReason ? ` Motivo: ${cancellationReason}.` : "";
+                const content = `Hola, te informo que tu cita del ${dateStr} ha sido cancelada.${reasonText} Por favor agenda una nueva cuando puedas.`;
+
+                await (prisma as any).message.create({
+                    data: {
+                        content,
+                        senderId,
+                        receiverId,
+                        companyId: appointment.companyId
+                    }
+                });
+            } catch (notificationError) {
+                console.error("Error sending cancellation notification message:", notificationError);
+            }
+        }
 
         return NextResponse.json(updatedAppointment);
     } catch (error: any) {
