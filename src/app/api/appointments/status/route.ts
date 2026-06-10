@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { deleteGoogleCalendarEvent } from "@/lib/google-calendar";
 
 export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -89,6 +90,13 @@ export async function PATCH(req: NextRequest) {
                 });
             } catch (notificationError) {
                 console.error("Error sending cancellation notification message:", notificationError);
+            }
+
+            // Delete Google Calendar event (non-blocking)
+            if (appointment.googleEventId) {
+                deleteGoogleCalendarEvent(appointment.googleEventId).catch(err =>
+                    console.error("Error deleting Google Calendar event:", err)
+                );
             }
         }
 

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
+import { createGoogleCalendarEvent } from "@/lib/google-calendar";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -68,6 +71,45 @@ export async function POST(req: NextRequest) {
                 status: "SCHEDULED"
             }
         });
+
+        // Google Calendar integration (non-blocking)
+        try {
+            const [patient, psychologist] = await Promise.all([
+                (prisma as any).profile.findUnique({
+                    where: { id: patientId },
+                    include: { user: { select: { email: true, name: true } } }
+                }),
+                (prisma as any).profile.findUnique({
+                    where: { id: psychologistId },
+                    include: { user: { select: { email: true, name: true } } }
+                })
+            ]);
+
+            const attendeeEmails = [patient.user.email, psychologist.user.email].filter(Boolean);
+            const isVirtual = type === "VIRTUAL";
+            const dateStr = format(start, "EEEE d 'de' MMMM, h:mm a", { locale: es });
+            const typeLabel = isVirtual ? "Virtual (Google Meet)" : "Presencial";
+
+            const { eventId, meetingLink } = await createGoogleCalendarEvent({
+                title: `Sesión: ${patient.user.name} - ${psychologist.user.name}`,
+                description: `Cita ${typeLabel}\nPaciente: ${patient.user.name}\nPsicólogo: ${psychologist.user.name}\nFecha: ${dateStr}${notes ? `\nNotas: ${notes}` : ""}`,
+                startTime: start,
+                endTime: end,
+                attendeeEmails,
+                isVirtual
+            });
+
+            if (eventId) {
+                await (prisma as any).appointment.update({
+                    where: { id: appointment.id },
+                    data: { googleEventId: eventId, meetingLink }
+                });
+                appointment.googleEventId = eventId;
+                appointment.meetingLink = meetingLink;
+            }
+        } catch (calendarError) {
+            console.error("Google Calendar integration error (non-blocking):", calendarError);
+        }
 
         // Deduct therapy session if applicable (Assuming it costs 1 session)
         const inventory = await (prisma as any).therapyInventory.findUnique({

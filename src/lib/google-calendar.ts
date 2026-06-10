@@ -1,25 +1,25 @@
 import { google } from "googleapis";
 
-/**
- * Google Calendar API utility for generating Meet links.
- * Requires: GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_CALENDAR_ID
- */
-export async function createGoogleMeetEvent(details: {
-    title: string;
-    description: string;
-    startTime: Date;
-    endTime: Date;
-    attendeeEmail: string;
-}) {
-    const auth = new google.auth.JWT({
+function getCalendarAuth() {
+    return new google.auth.JWT({
         email: process.env.GOOGLE_CLIENT_EMAIL,
         key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
         scopes: ["https://www.googleapis.com/auth/calendar"],
     });
+}
 
+export async function createGoogleCalendarEvent(details: {
+    title: string;
+    description: string;
+    startTime: Date;
+    endTime: Date;
+    attendeeEmails: string[];
+    isVirtual: boolean;
+}): Promise<{ eventId: string | null; meetingLink: string | null }> {
+    const auth = getCalendarAuth();
     const calendar = google.calendar({ version: "v3", auth });
 
-    const event = {
+    const event: any = {
         summary: details.title,
         description: details.description,
         start: {
@@ -30,28 +30,47 @@ export async function createGoogleMeetEvent(details: {
             dateTime: details.endTime.toISOString(),
             timeZone: "America/Bogota",
         },
-        attendees: [{ email: details.attendeeEmail }],
-        conferenceData: {
+        attendees: details.attendeeEmails.map(email => ({ email })),
+    };
+
+    if (details.isVirtual) {
+        event.conferenceData = {
             createRequest: {
                 requestId: `meet-${Date.now()}`,
                 conferenceSolutionKey: { type: "hangoutsMeet" },
             },
-        },
-    };
+        };
+    }
 
     try {
         const response = await calendar.events.insert({
             calendarId: process.env.GOOGLE_CALENDAR_ID || "primary",
             requestBody: event,
-            conferenceDataVersion: 1,
+            conferenceDataVersion: details.isVirtual ? 1 : 0,
         });
 
         return {
-            eventId: response.data.id,
-            hangoutLink: response.data.hangoutLink,
+            eventId: response.data.id || null,
+            meetingLink: response.data.hangoutLink || null,
         };
     } catch (error) {
-        console.error("Error creating Google Meet event:", error);
-        throw error;
+        console.error("Error creating Google Calendar event:", error);
+        return { eventId: null, meetingLink: null };
+    }
+}
+
+export async function deleteGoogleCalendarEvent(eventId: string): Promise<boolean> {
+    const auth = getCalendarAuth();
+    const calendar = google.calendar({ version: "v3", auth });
+
+    try {
+        await calendar.events.delete({
+            calendarId: process.env.GOOGLE_CALENDAR_ID || "primary",
+            eventId,
+        });
+        return true;
+    } catch (error) {
+        console.error("Error deleting Google Calendar event:", error);
+        return false;
     }
 }

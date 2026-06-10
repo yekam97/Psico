@@ -153,7 +153,18 @@ export default function PsychologistDashboard() {
                                                         {appt.type}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-400 text-sm mb-4">{appt.patient.user.email}</p>
+                                                <p className="text-gray-400 text-sm mb-2">{appt.patient.user.email}</p>
+                                                {appt.type === 'VIRTUAL' && appt.meetingLink && (
+                                                    <a
+                                                        href={appt.meetingLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors mb-2"
+                                                    >
+                                                        <Video size={12} />
+                                                        Unirse a Google Meet
+                                                    </a>
+                                                )}
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
                                                         Saldo: <span className="text-primary">{appt.patient.therapyInventory?.remaining || 0} sesiones</span>
