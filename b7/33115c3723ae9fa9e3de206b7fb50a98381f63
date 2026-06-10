@@ -1,0 +1,30 @@
+src/app/api/appointments/status/route.ts
+  s_2617a2bf1c839b::t_946f0e9cc55543 8
+  s_2617a2bf1c839b::t_3120e1e5725b31 94-100
+src/app/api/patient/appointments/route.ts
+  s_2617a2bf1c839b::t_940cb6f72af1fc 75-113
+  s_2617a2bf1c839b::t_1706c9e120ff02 5-7
+src/lib/google-calendar.ts
+  s_2617a2bf1c839b::t_de81245cc8ba43 3-4,9,11-19,22,33-37,42-43,49,53-54,57-74
+src/app/dashboard/psychologist/page.tsx
+  s_2617a2bf1c839b::t_223a6da3d39a55 156-167
+src/app/api/admin/appointments/route.ts
+  s_2617a2bf1c839b::t_986de363ef391f 74-112
+  s_2617a2bf1c839b::t_1f6bf7f35aa5e4 5-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "b733115c3723ae9fa9e3de206b7fb50a98381f63",
+  "prompts": {},
+  "sessions": {
+    "s_2617a2bf1c839b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38ebdef6-c8f2-42eb-8d61-8e8657cfd855",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
