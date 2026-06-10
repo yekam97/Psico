@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
                                     include: { user: { select: { name: true } } }
                                 }
                             },
-                            orderBy: { startTime: "asc" }
+                            orderBy: { startTime: "desc" }
                         }
                     }
                 }

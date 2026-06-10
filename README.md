@@ -181,6 +181,8 @@ Datos para login:
 
 ### ✅ Resuelto en esta sesión
 
+- ~~**Portal paciente — orden de citas invertido:**~~ Las citas se mostraban con las más antiguas primero. Corregido para mostrar las citas más próximas arriba.
+- ~~**Portal paciente — fecha de cita incompleta:**~~ El portal del paciente mostraba solo mes y día de las citas, sin el año. Corregido para mostrar la fecha completa (mes, día y año).
 - ~~**Validación de correo duplicado:**~~ Al intentar crear un usuario con un correo ya registrado, el sistema lo rechaza correctamente.
 - ~~**Dónde se carga el saldo de citas:**~~ Se gestiona desde Admin > Terapias. Funciona correctamente.
 - ~~**Alcance del admin en multi-tenant:**~~ Confirmado por código: todas las queries de la API filtran por `companyId` extraído de la sesión. Un admin solo ve datos de su propio centro.

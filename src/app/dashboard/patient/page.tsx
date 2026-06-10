@@ -88,6 +88,7 @@ export default function PatientDashboard() {
                                                 <div className="w-14 h-14 md:w-16 md:h-16 bg-sage/10 rounded-xl md:rounded-2xl flex flex-col items-center justify-center text-sage-dark shrink-0">
                                                     <span className="text-[10px] md:text-xs font-bold uppercase">{format(startTime, 'MMM', { locale: es })}</span>
                                                     <span className="text-lg md:text-xl font-bold">{format(startTime, 'd')}</span>
+                                                    <span className="text-[8px] md:text-[10px] text-gray-400">{format(startTime, 'yyyy')}</span>
                                                 </div>
                                                 <div className="min-w-0">
                                                     <h4 className="font-semibold text-gray-800 text-sm md:text-base truncate">{apt.psychologist.user.name}</h4>
