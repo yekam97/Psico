@@ -1,0 +1,24 @@
+src/app/dashboard/patient/page.tsx
+  s_510f8904296be7::t_ffd843e0013559 91
+README.md
+  s_510f8904296be7::t_5bc6e46c70cca8 184
+  s_510f8904296be7::t_c0f2dfa81f4d1c 185
+src/app/api/patient/dashboard/route.ts
+  s_510f8904296be7::t_a9531b47ad1caa 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "b75da3f6a637ae8eb825a12a011a867bc876045c",
+  "prompts": {},
+  "sessions": {
+    "s_510f8904296be7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b29c9587-ebfb-4ee6-97f6-a305ff699f35",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
