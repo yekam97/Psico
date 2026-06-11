@@ -159,7 +159,7 @@ export default function PsychologistDashboard() {
                                                         href={appt.meetingLink}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors mb-2"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-colors mb-2"
                                                     >
                                                         <Video size={12} />
                                                         Unirse a Google Meet

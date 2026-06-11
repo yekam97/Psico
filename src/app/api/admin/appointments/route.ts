@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
             console.error("Google Calendar integration error (non-blocking):", calendarError);
         }
 
-        // Internal notification to patient about the new appointment
+        // Internal notification to patient and psychologist about the new appointment
         try {
             const [patientProfile, psychologistProfile] = await Promise.all([
                 (prisma as any).profile.findUnique({
@@ -127,20 +127,33 @@ export async function POST(req: NextRequest) {
             const dateStr = format(start, "EEEE d 'de' MMMM, h:mm a", { locale: es });
             const typeLabel = isVirtual ? "Virtual" : "Presencial";
 
-            let messageContent = `Tu cita ha sido agendada exitosamente.\n\n📅 Fecha: ${dateStr}\n👤 Psicólogo: ${psychologistProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
+            let patientMessage = `Tu cita ha sido agendada exitosamente.\n\n📅 Fecha: ${dateStr}\n👤 Psicólogo: ${psychologistProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
+            let psychologistMessage = `Nueva cita agendada.\n\n📅 Fecha: ${dateStr}\n👤 Paciente: ${patientProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
 
             if (isVirtual && appointment.meetingLink) {
-                messageContent += `\n\n🔗 Link de Google Meet:\n${appointment.meetingLink}`;
+                const meetLink = `\n\n🔗 Link de Google Meet:\n${appointment.meetingLink}`;
+                patientMessage += meetLink;
+                psychologistMessage += meetLink;
             }
 
-            await (prisma as any).message.create({
-                data: {
-                    senderId: psychologistProfile.user.id,
-                    receiverId: patientProfile.user.id,
-                    content: messageContent,
-                    type: "NOTIFICATION"
-                }
-            });
+            await Promise.all([
+                (prisma as any).message.create({
+                    data: {
+                        companyId,
+                        senderId: psychologistProfile.user.id,
+                        receiverId: patientProfile.user.id,
+                        content: patientMessage
+                    }
+                }),
+                (prisma as any).message.create({
+                    data: {
+                        companyId,
+                        senderId: patientProfile.user.id,
+                        receiverId: psychologistProfile.user.id,
+                        content: psychologistMessage
+                    }
+                })
+            ]);
         } catch (notificationError) {
             console.error("Error sending appointment notification (non-blocking):", notificationError);
         }

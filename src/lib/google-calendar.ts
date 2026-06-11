@@ -49,7 +49,9 @@ export async function createGoogleCalendarEvent(details: {
         event.attendees = details.attendeeEmails.map(email => ({ email }));
     }
 
-    if (details.isVirtual) {
+    // Google Meet requires Domain-Wide Delegation (impersonating a real user)
+    // Service accounts alone cannot create Meet conferences
+    if (details.isVirtual && canSendInvites) {
         event.conferenceData = {
             createRequest: {
                 requestId: `meet-${Date.now()}`,
@@ -62,7 +64,7 @@ export async function createGoogleCalendarEvent(details: {
         const response = await calendar.events.insert({
             calendarId: process.env.GOOGLE_CALENDAR_ID || "primary",
             requestBody: event,
-            conferenceDataVersion: details.isVirtual ? 1 : 0,
+            conferenceDataVersion: (details.isVirtual && canSendInvites) ? 1 : 0,
             // Send email invitations if Domain-Wide Delegation is configured
             sendUpdates: canSendInvites ? "all" : "none",
         });
