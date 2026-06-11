@@ -1,0 +1,28 @@
+src/app/api/admin/appointments/route.ts
+  s_2617a2bf1c839b::t_002efcec3d36dc 128,130,142,147,155
+  s_2617a2bf1c839b::t_81b071ca604249 6,9
+  s_2617a2bf1c839b::t_eaa14a079b36f8 91
+package.json
+  s_2617a2bf1c839b::t_ac19c9559feba3 24,52
+src/app/api/patient/appointments/route.ts
+  s_2617a2bf1c839b::t_9b742f16d013cd 92,157
+  s_2617a2bf1c839b::t_bd25e92f286683 6
+  s_2617a2bf1c839b::t_87d67f9b7f0692 142-143,163,166-173
+  s_2617a2bf1c839b::t_765c5f1eaa10dd 9-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "09d111291ca2853c1e3acb0092e9ad75e1db8c07",
+  "prompts": {},
+  "sessions": {
+    "s_2617a2bf1c839b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38ebdef6-c8f2-42eb-8d61-8e8657cfd855",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
