@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     ArrowLeft,
     Calendar as CalendarIcon,
@@ -11,24 +11,42 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+
+function getMinDate(): string {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+}
+
+function getMaxDate(): string {
+    const now = new Date();
+    now.setMonth(now.getMonth() + 2);
+    return now.toISOString().split('T')[0];
+}
+
+function formatTimeSlot(time24: string): string {
+    const [hours, minutes] = time24.split(":").map(Number);
+    const period = hours >= 12 ? "PM" : "AM";
+    const hours12 = hours % 12 || 12;
+    return `${String(hours12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
+}
 
 export default function BookAppointmentPage() {
     const [step, setStep] = useState(1);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
     const [modality, setModality] = useState<"VIRTUAL" | "IN_PERSON">("VIRTUAL");
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState<string>(getMinDate());
     const router = useRouter();
 
     const [doctors, setDoctors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-
-    const timeSlots = ["08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "03:00 PM", "04:00 PM"];
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [noAvailability, setNoAvailability] = useState(false);
 
     const fetchPsychologists = async () => {
         try {
@@ -45,6 +63,32 @@ export default function BookAppointmentPage() {
     useEffect(() => {
         fetchPsychologists();
     }, []);
+
+    const fetchAvailability = async (psychologistId: string, date: string) => {
+        setLoadingSlots(true);
+        setAvailableSlots([]);
+        setNoAvailability(false);
+        setSelectedTime(null);
+        try {
+            const response = await axios.get(`/api/patient/availability/${psychologistId}?date=${date}`);
+            if (response.data.slots.length === 0) {
+                setNoAvailability(true);
+            } else {
+                setAvailableSlots(response.data.slots);
+            }
+        } catch (error) {
+            console.error("Error fetching availability:", error);
+            toast.error("Error al cargar disponibilidad");
+        } finally {
+            setLoadingSlots(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedDoc && selectedDate && step === 2) {
+            fetchAvailability(selectedDoc.id, selectedDate);
+        }
+    }, [selectedDoc, selectedDate, step]);
 
     const handleNext = (doc: any) => {
         setSelectedDoc(doc);
@@ -136,22 +180,50 @@ export default function BookAppointmentPage() {
                         </div>
 
                         <div className="space-y-4">
-                            <h4 className="font-medium text-gray-700">Horarios Disponibles para hoy, {new Date().toLocaleDateString()}</h4>
-                            <div className="grid grid-cols-3 gap-3">
-                                {timeSlots.map((time) => (
-                                    <button
-                                        key={time}
-                                        type="button"
-                                        onClick={() => setSelectedTime(time)}
-                                        className={`py-3 rounded-xl border transition-all text-sm font-medium ${selectedTime === time
-                                                ? 'border-primary text-primary bg-primary/5'
-                                                : 'border-gray-100 hover:border-primary hover:text-primary bg-gray-50 hover:bg-white'
-                                            }`}
-                                    >
-                                        {time}
-                                    </button>
-                                ))}
-                            </div>
+                            <h4 className="font-medium text-gray-700 flex items-center gap-2">
+                                <CalendarIcon size={18} />
+                                Selecciona una fecha
+                            </h4>
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                min={getMinDate()}
+                                max={getMaxDate()}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="w-full p-4 rounded-2xl border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-gray-700">
+                                Horarios Disponibles para {new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </h4>
+                            {loadingSlots ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="animate-spin text-primary" size={32} />
+                                </div>
+                            ) : noAvailability ? (
+                                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <p className="text-gray-500">No hay horarios disponibles para esta fecha.</p>
+                                    <p className="text-xs text-gray-400 mt-2">Intenta seleccionar otro día.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-3">
+                                    {availableSlots.map((time) => (
+                                        <button
+                                            key={time}
+                                            type="button"
+                                            onClick={() => setSelectedTime(time)}
+                                            className={`py-3 rounded-xl border transition-all text-sm font-medium ${selectedTime === time
+                                                    ? 'border-primary text-primary bg-primary/5'
+                                                    : 'border-gray-100 text-gray-700 hover:border-primary hover:text-primary bg-gray-50 hover:bg-white'
+                                                }`}
+                                        >
+                                            {formatTimeSlot(time)}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <button
@@ -163,15 +235,9 @@ export default function BookAppointmentPage() {
                                 }
                                 setSubmitting(true);
                                 try {
-                                    // Convert "09:00 AM" format to 24h
-                                    const [timePart, period] = selectedTime.split(' ');
-                                    let [hours, minutes] = timePart.split(':').map(Number);
-                                    if (period === 'PM' && hours !== 12) hours += 12;
-                                    if (period === 'AM' && hours === 12) hours = 0;
-                                    const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
                                     await axios.post("/api/patient/appointments", {
                                         psychologistId: selectedDoc.id,
-                                        startTime: `${selectedDate}T${time24}:00`,
+                                        startTime: `${selectedDate}T${selectedTime}:00`,
                                         type: modality,
                                         notes: "Cita agendada por el paciente"
                                     });
@@ -201,7 +267,9 @@ export default function BookAppointmentPage() {
                         <div className="bg-gray-50 p-6 rounded-3xl max-w-sm mx-auto text-left">
                             <p className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Detalles de la Cita</p>
                             <p className="font-bold text-gray-800">{selectedDoc?.name}</p>
-                            <p className="text-sm text-primary font-medium mt-1">Hoy, 09:00 AM</p>
+                            <p className="text-sm text-primary font-medium mt-1">
+                                {new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}, {selectedTime ? formatTimeSlot(selectedTime) : ''}
+                            </p>
                             <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
                                 {modality === 'VIRTUAL' ? <Video size={14} /> : <MapPin size={14} />}
                                 {modality === 'VIRTUAL' ? 'Virtual (Link enviado por Email)' : 'Presencial (Sede Centro)'}

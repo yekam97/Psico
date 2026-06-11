@@ -33,6 +33,39 @@ npm run dev
 
 ---
 
+## Pruebas locales con datos seed
+
+Para probar en local con datos de ejemplo:
+
+```bash
+npx prisma db push    # Sincroniza schema con la DB
+npx prisma db seed    # Carga datos desde prisma/tenants.json
+```
+
+El seed crea usuarios, perfiles, asignaciones psicólogo-paciente y disponibilidad. Los usuarios de prueba están listados en la sección "Datos para login" más abajo.
+
+---
+
+## Google Calendar
+
+La integración con Google Calendar usa una Service Account. Variables requeridas en `.env.local`:
+
+```env
+GOOGLE_SERVICE_ACCOUNT_EMAIL=   # Email de la Service Account
+GOOGLE_PRIVATE_KEY=             # Private key (con \n escapados)
+GOOGLE_CALENDAR_ID=             # ID del calendario (o email del owner)
+GOOGLE_IMPERSONATE_EMAIL=       # (Opcional) Email a impersonar para Domain-Wide Delegation
+```
+
+**Google Meet:** Para que se generen links de Meet automáticamente, se requiere:
+1. Habilitar Domain-Wide Delegation en la Service Account (Google Cloud Console)
+2. Autorizar los scopes en Google Workspace Admin Console (`Admin > Security > API Controls > Domain-wide Delegation`)
+3. Configurar `GOOGLE_IMPERSONATE_EMAIL` con un usuario del dominio
+
+Sin Domain-Wide Delegation, los eventos se crean correctamente pero sin conferencia de Meet.
+
+---
+
 ## Estado del proyecto
 
 ### ✅ Backend listo (API Routes operativas en Neon)
@@ -50,6 +83,7 @@ npm run dev
 | `/api/admin/settings` | GET, PUT | Configuración del centro |
 | `/api/appointments/status` | PATCH | Cambiar estado de cita; al cancelar desde SCHEDULED devuelve la sesión al saldo |
 | `/api/patient/appointments` | POST | Agendar cita con validación de salas físicas disponibles |
+| `/api/patient/availability/[psychologistId]` | GET | Slots disponibles por fecha; filtra por disponibilidad real y citas existentes |
 | `/api/patient/psychologists` | GET | Psicólogos disponibles para agendar |
 | `/api/patient/dashboard` | GET | Dashboard del paciente |
 | `/api/psychologist/appointments` | GET | Citas del día y próximas 30 días |
@@ -74,7 +108,7 @@ npm run dev
 - [x] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
 - [X] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
 - [ ] **Psicólogo > Lista de espera** — conectar a `/api/psychologist/waitlist`
-- [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; ⚠️ no filtra por disponibilidad del psicólogo
+- [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; respeta disponibilidad del psicólogo, filtra horas pasadas y requiere 1h de antelación
 - [X] **Perfil** — Agregar sección de logo/branding
 
 ---
@@ -86,12 +120,14 @@ npm run dev
 - [x] **Psicólogo > Cancelar citas** — el psicólogo puede cancelar sus propias citas
 - [x] **Psicólogo > Sesión completada** — botón de marcar sesión completada funciona correctamente
 - [x] **Descuento automático de saldo** — el saldo de citas del paciente se descuenta al agendar y se devuelve si la cita se cancela
+- [x] **Notificación interna al agendar cita** — al crear una cita se envía mensaje interno al psicólogo (y al paciente si la crea el admin). Sin duplicados: se usa un único sender para evitar mensajes repetidos en el chat.
+- [x] **Evento en Google Calendar** — las citas se sincronizan con Google Calendar incluyendo attendees, descripción con timezone correcto (America/Bogota), y tipo de modalidad. El link de Meet aparece en la vista si está disponible.
 
 ---
 
 ### ⏳ Funcionalidades sin implementar aún
 
-- [ ] **Disponibilidad del psicólogo** — guardar horarios y filtrar slots en el booking (confirmado: el agendamiento actual no respeta disponibilidad)
+- [x] **Disponibilidad del psicólogo** — guardar horarios y filtrar slots en el booking (implementado para paciente y admin; psicólogo no aplica porque no agenda citas)
 - [X] **Confirmación/rechazo de cita** — psicólogo aprueba o rechaza con razón visible al paciente
 - [ ] **Track de citas en calendario** — marcar si se realizó o no (con razón si no se hizo) (validar obligatoriedad del campo)
 - [ ] **Tip de bienestar** — contenido dinámico para vista del psicólogo
@@ -102,7 +138,7 @@ npm run dev
 - [ ] **Cita prioritaria desde el paciente:** El paciente puede marcar una cita como prioritaria al agendarla; se agenda en cualquier espacio pero entra en la lista de espera del psicólogo para ser confirmada o rechazada. Debe llegar una notificación y un badge al psicólogo indicando que tiene algo en lista de espera.
 - [x] **Modal de razón de cancelación:** El popup actual de razón de cancelación debería ser un modal consistente con el de crear cita.
 - [x] **Notificación al paciente cuando el psicólogo cancela:** Notificar con un mensaje al paciente cuando el psicólogo cancela una cita.
-- [ ] **Ventana de agendamiento con antelación máxima:** Se deben poder agendar citas en distintas fechas con un máximo de 2 meses de antelación para pacientes y 3 meses para el admin.
+- [x] **Ventana de agendamiento con antelación máxima:** Se deben poder agendar citas en distintas fechas con un máximo de 2 meses de antelación para pacientes y 3 meses para el admin. (Implementado: paciente máximo 2 meses, admin máximo 3 meses, mínimo 1 hora de antelación)
 - [ ] **Notificaciones por email/WhatsApp de citas próximas:** Agregar envío de notificaciones por email o WhatsApp al celular dependiendo de las citas próximas.
 
 ---
@@ -149,10 +185,11 @@ Datos para login:
 - [X] **Recordatorios de citas — UI sin backend:** Los toggles de recordatorio en Admin > Ajustes son solo decorativos. Confirmado por código: `src/app/api/admin/settings` no guarda ningún campo de recordatorio y no existe ningún cron job, worker ni integración de email/notificaciones en todo el proyecto.
 - [ ] **Badge "Verificado" — hardcodeado:** El badge de "Verificado" en la vista de perfil es texto estático (`src/app/dashboard/profile/page.tsx`). No existe el campo `verified` ni `isVerified` en el schema de Prisma. No representa ningún estado real.
 - [ ] **Contraste de fuentes en tema dark:** Revisar fuentes con bajo contraste en tema dark; validar si afecta otras vistas además de las identificadas.
+- [x] **Time slots sin contraste en tema claro:** Los botones de horarios en la vista de booking del paciente no tenían color de texto definido, causando que fueran ilegibles en tema claro. Corregido agregando `text-gray-700`.
 - [ ] **Notas del psicólogo — fuente sin contraste:** En la vista de notas del psicólogo la fuente no se visualiza en contraste con el fondo (blanco).
-- [ ] **Login — fuente con poco contraste en tema dark:** La fuente del login tiene poco contraste cuando se usa el tema dark.
+- [x] **Login — fuente con poco contraste en tema claro y dark:** Corregido: se mejoró el contraste de textos (`gray-400` → `gray-500/600`), placeholders, y se agregaron variantes `dark:` para soporte completo de tema oscuro.
 - [ ] **Concurrencia de citas en el mismo horario:** Revisar qué ocurre cuando dos pacientes diferentes intentan programar una cita a la misma hora con el mismo psicólogo.
-- [ ] **Hora programada inconsistente entre vistas:** La hora agendada no se guarda o visualiza correctamente; desde la vista del psicólogo aparece una hora diferente a la que el paciente programó.
+- [x] ~~**Hora programada inconsistente entre vistas:** La hora agendada no se guarda o visualiza correctamente; desde la vista del psicólogo aparece una hora diferente a la que el paciente programó.~~ (Corregido: el servidor corría en UTC y las fechas se formateaban sin timezone; ahora se usa `formatInTimeZone` con `America/Bogota`)
 
 ---
 
@@ -181,6 +218,9 @@ Datos para login:
 
 ### ✅ Resuelto en esta sesión
 
+- ~~**Timezone de citas inconsistente:**~~ La hora del evento y la descripción mostraban diferencia de 5 horas (UTC vs America/Bogota). Corregido usando `formatInTimeZone` de `date-fns-tz` en ambas rutas de appointments.
+- ~~**Mensajes duplicados al agendar:**~~ El paciente y psicólogo veían 2 mensajes cada uno. Corregido: admin envía ambos mensajes; para citas de paciente solo se notifica al psicólogo.
+- ~~**Link de Google Meet no visible:**~~ El botón de "Unirse a Google Meet" ahora aparece con estilos del tema (`text-primary bg-primary/10`) en ambos dashboards.
 - ~~**Portal paciente — orden de citas invertido:**~~ Las citas se mostraban con las más antiguas primero. Corregido para mostrar las citas más próximas arriba.
 - ~~**Portal paciente — fecha de cita incompleta:**~~ El portal del paciente mostraba solo mes y día de las citas, sin el año. Corregido para mostrar la fecha completa (mes, día y año).
 - ~~**Validación de correo duplicado:**~~ Al intentar crear un usuario con un correo ya registrado, el sistema lo rechaza correctamente.
@@ -192,6 +232,6 @@ Datos para login:
 
 ### 🚀 Features futuros
 
-- [ ] **Disponibilidad del psicólogo en el agendamiento:** La disponibilidad configurada por el psicólogo no se refleja en ninguna de las pantallas de agendamiento (admin, paciente ni psicólogo). Todas las franjas horarias aparecen disponibles siempre.
-- [ ] **Integración con Google Calendar:** Generar links de Google Meet automáticamente para las citas virtuales y sincronizar con el calendario personal del psicólogo.
+- [x] ~~**Integración con Google Calendar:** Generar links de Google Meet automáticamente para las citas virtuales y sincronizar con el calendario personal del psicólogo.~~ (Implementado: eventos se crean en Google Calendar con attendees y descripción. ⚠️ Google Meet requiere Domain-Wide Delegation en Google Workspace Admin para generar links automáticamente)
+- [x] **Disponibilidad del psicólogo en el agendamiento:** ~~La disponibilidad configurada por el psicólogo no se refleja en ninguna de las pantallas de agendamiento.~~ (Implementado para paciente y admin: el booking consulta `/api/patient/availability/[psychologistId]` o `/api/admin/availability/[psychologistId]` que filtra por disponibilidad real, excluye citas existentes y aplica regla de 1h mínimo. Psicólogo no aplica porque no agenda citas)
 - [ ] **Notificaciones de citas vía WhatsApp:** Enviar recordatorios o confirmaciones de cita por WhatsApp a pacientes y psicólogos.

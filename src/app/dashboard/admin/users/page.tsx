@@ -80,10 +80,66 @@ export default function AdminUsersPage() {
     const [bookingData, setBookingData] = useState({
         psychologistId: "",
         date: new Date().toISOString().split('T')[0],
-        time: "09:00",
+        time: "",
         type: "VIRTUAL" as "VIRTUAL" | "IN_PERSON",
         notes: "Cita programada por administración"
     });
+
+    // Availability state for booking modal
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [noAvailability, setNoAvailability] = useState(false);
+
+    // Helper functions for date constraints (3 months for admin)
+    function getMinDate(): string {
+        const now = new Date();
+        return now.toISOString().split('T')[0];
+    }
+
+    function getMaxDate(): string {
+        const now = new Date();
+        now.setMonth(now.getMonth() + 3);
+        return now.toISOString().split('T')[0];
+    }
+
+    function formatTimeSlot(time24: string): string {
+        const [hours, minutes] = time24.split(":").map(Number);
+        const period = hours >= 12 ? "PM" : "AM";
+        const hours12 = hours % 12 || 12;
+        return `${String(hours12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
+    }
+
+    // Fetch availability when psychologist or date changes
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!bookingData.psychologistId || !bookingData.date || !isBookingModalOpen) {
+                setAvailableSlots([]);
+                setNoAvailability(false);
+                return;
+            }
+
+            setLoadingSlots(true);
+            setNoAvailability(false);
+            setAvailableSlots([]);
+            setBookingData(prev => ({ ...prev, time: "" }));
+
+            try {
+                const response = await axios.get(
+                    `/api/admin/availability/${bookingData.psychologistId}?date=${bookingData.date}`
+                );
+                const slots = response.data.slots || [];
+                setAvailableSlots(slots);
+                setNoAvailability(slots.length === 0);
+            } catch (error) {
+                console.error("Error fetching availability:", error);
+                setNoAvailability(true);
+            } finally {
+                setLoadingSlots(false);
+            }
+        };
+
+        fetchAvailability();
+    }, [bookingData.psychologistId, bookingData.date, isBookingModalOpen]);
 
     const fetchUsers = async () => {
         try {
@@ -686,6 +742,8 @@ export default function AdminUsersPage() {
                                         <input
                                             required
                                             type="date"
+                                            min={getMinDate()}
+                                            max={getMaxDate()}
                                             className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                             value={bookingData.date}
                                             onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
@@ -693,13 +751,31 @@ export default function AdminUsersPage() {
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Hora</label>
-                                        <input
-                                            required
-                                            type="time"
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
-                                            value={bookingData.time}
-                                            onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
-                                        />
+                                        {loadingSlots ? (
+                                            <div className="flex items-center justify-center h-[56px] bg-gray-50 rounded-2xl">
+                                                <Loader2 className="animate-spin text-primary" size={20} />
+                                            </div>
+                                        ) : !bookingData.psychologistId ? (
+                                            <div className="flex items-center justify-center h-[56px] bg-gray-50 rounded-2xl text-xs text-gray-400">
+                                                Seleccione psicólogo
+                                            </div>
+                                        ) : noAvailability ? (
+                                            <div className="flex items-center justify-center h-[56px] bg-red-50 rounded-2xl text-xs text-red-500">
+                                                Sin disponibilidad
+                                            </div>
+                                        ) : (
+                                            <select
+                                                required
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                                value={bookingData.time}
+                                                onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+                                            >
+                                                <option value="">Seleccionar...</option>
+                                                {availableSlots.map(slot => (
+                                                    <option key={slot} value={slot}>{formatTimeSlot(slot)}</option>
+                                                ))}
+                                            </select>
+                                        )}
                                     </div>
                                 </div>
 

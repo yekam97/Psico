@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { BrandingProvider } from "@/components/providers/BrandingProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from 'sonner';
 
 export default function RootLayout({
@@ -27,14 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-          <BrandingProvider>
-            {children}
-            <Toaster position="top-right" richColors closeButton />
-          </BrandingProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <BrandingProvider>
+              {children}
+              <Toaster position="top-right" richColors closeButton />
+            </BrandingProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
