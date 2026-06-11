@@ -1,0 +1,28 @@
+src/app/api/admin/appointments/route.ts
+  s_2617a2bf1c839b::t_97de9f881b582b 113-147
+src/lib/google-calendar.ts
+  s_2617a2bf1c839b::t_fb30cb081c970c 16-17
+  s_2617a2bf1c839b::t_ea24b70bffb285 32,47-50
+  s_2617a2bf1c839b::t_3a1873ec01356c 33
+  s_2617a2bf1c839b::t_6842358fb0d1ec 66-67
+  s_2617a2bf1c839b::t_f33c950bd565f6 83,89-90
+  s_2617a2bf1c839b::t_3cf06a35bc2697 4-11,14
+src/app/api/patient/appointments/route.ts
+  s_2617a2bf1c839b::t_70ed84f406488e 140-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "a87a9448c0a009049d2b9adff7c94d220ce4d6b7",
+  "prompts": {},
+  "sessions": {
+    "s_2617a2bf1c839b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38ebdef6-c8f2-42eb-8d61-8e8657cfd855",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
