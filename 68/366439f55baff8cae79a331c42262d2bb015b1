@@ -1,0 +1,25 @@
+src/app/api/patient/appointments/route.ts
+  s_2617a2bf1c839b::t_c454da6c50a42c 140,157-158,161-163,166-183
+src/lib/google-calendar.ts
+  s_2617a2bf1c839b::t_cc5defffd80516 52-54,67
+src/app/api/admin/appointments/route.ts
+  s_2617a2bf1c839b::t_3b28c2d4ee9dfa 113,130-131,134-136,139-156
+src/app/dashboard/psychologist/page.tsx
+  s_2617a2bf1c839b::t_98a6a54ae0de58 162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "68366439f55baff8cae79a331c42262d2bb015b1",
+  "prompts": {},
+  "sessions": {
+    "s_2617a2bf1c839b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38ebdef6-c8f2-42eb-8d61-8e8657cfd855",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
