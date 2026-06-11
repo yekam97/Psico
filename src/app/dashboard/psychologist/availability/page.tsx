@@ -1,26 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Save,
     Clock,
-    Calendar as CalendarIcon,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    Loader2
 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function AvailabilityPage() {
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    const [schedule, setSchedule] = useState<any>({
-        Lunes: { active: true, start: "08:00", end: "17:00" },
-        Martes: { active: true, start: "08:00", end: "17:00" },
-        Miércoles: { active: true, start: "08:00", end: "17:00" },
-        Jueves: { active: true, start: "08:00", end: "17:00" },
-        Viernes: { active: true, start: "08:00", end: "15:00" },
+    const [schedule, setSchedule] = useState<Record<string, { active: boolean; start: string; end: string }>>({
+        Lunes: { active: false, start: "08:00", end: "17:00" },
+        Martes: { active: false, start: "08:00", end: "17:00" },
+        Miércoles: { active: false, start: "08:00", end: "17:00" },
+        Jueves: { active: false, start: "08:00", end: "17:00" },
+        Viernes: { active: false, start: "08:00", end: "15:00" },
         Sábado: { active: false, start: "09:00", end: "12:00" },
     });
 
+    const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            try {
+                const response = await axios.get("/api/psychologist/availability");
+                setSchedule(response.data.schedule);
+            } catch (error) {
+                console.error("Error loading availability:", error);
+                toast.error("Error al cargar disponibilidad");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAvailability();
+    }, []);
 
     const handleToggle = (day: string) => {
         setSchedule({
@@ -36,10 +54,26 @@ export default function AvailabilityPage() {
         });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true);
-        setTimeout(() => setIsSaving(false), 1500);
+        try {
+            await axios.put("/api/psychologist/availability", { schedule });
+            toast.success("Disponibilidad guardada correctamente");
+        } catch (error) {
+            console.error("Error saving availability:", error);
+            toast.error("Error al guardar disponibilidad");
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="animate-spin text-primary" size={40} />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl animate-in fade-in duration-500 space-y-8">
@@ -94,10 +128,11 @@ export default function AvailabilityPage() {
                     </div>
                     <button
                         onClick={handleSave}
-                        className="bg-primary text-white px-10 py-4 rounded-2xl font-medium shadow-lg hover:bg-primary-dark transition-all flex items-center gap-2"
+                        disabled={isSaving}
+                        className="bg-primary text-white px-10 py-4 rounded-2xl font-medium shadow-lg hover:bg-primary-dark transition-all flex items-center gap-2 disabled:opacity-50"
                     >
-                        {isSaving ? <CheckCircle2 size={24} className="animate-in zoom-in" /> : <Save size={20} />}
-                        {isSaving ? "Guardado" : "Guardar Cambios"}
+                        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                        {isSaving ? "Guardando..." : "Guardar Cambios"}
                     </button>
                 </div>
             </div>

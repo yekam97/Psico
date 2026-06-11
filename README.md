@@ -90,6 +90,7 @@ Sin Domain-Wide Delegation, los eventos se crean correctamente pero sin conferen
 | `/api/psychologist/patients` | GET | Pacientes asignados |
 | `/api/psychologist/notes/[patientId]` | GET, POST | Notas clínicas (valida asignación) |
 | `/api/psychologist/waitlist` | GET | Lista de espera |
+| `/api/psychologist/availability` | GET, PUT | Disponibilidad del psicólogo (horarios por día) |
 | `/api/branding` | GET | Branding multi-tenant por dominio |
 | `/api/chat/messages` | GET, POST | Mensajería interna |
 | `/api/chat/contacts` | GET | Contactos del chat |
@@ -107,6 +108,7 @@ Sin Domain-Wide Delegation, los eventos se crean correctamente pero sin conferen
 - [x] **Psicólogo > Próximas citas** — conectar a `/api/psychologist/appointments`
 - [x] **Psicólogo > Lista de pacientes** — conectar a `/api/psychologist/patients`
 - [X] **Psicólogo > Notas clínicas** — guardar e historial a `/api/psychologist/notes/[patientId]`
+- [x] **Psicólogo > Disponibilidad** — guardar horarios a `/api/psychologist/availability`
 - [ ] **Psicólogo > Lista de espera** — conectar a `/api/psychologist/waitlist`
 - [x] **Paciente > Agendar cita** — funciona contra `/api/patient/appointments`; respeta disponibilidad del psicólogo, filtra horas pasadas y requiere 1h de antelación
 - [X] **Perfil** — Agregar sección de logo/branding
@@ -218,6 +220,7 @@ Datos para login:
 
 ### ✅ Resuelto en esta sesión
 
+- ~~**Psicólogo > Disponibilidad no guardaba:**~~ El botón de guardar solo mostraba animación sin persistir datos. Corregido: se creó API `/api/psychologist/availability` (GET/PUT) y se conectó el frontend. El seed ahora crea disponibilidad por defecto (Lun-Vie 9:00-17:00) para psicólogos nuevos.
 - ~~**Timezone de citas inconsistente:**~~ La hora del evento y la descripción mostraban diferencia de 5 horas (UTC vs America/Bogota). Corregido usando `formatInTimeZone` de `date-fns-tz` en ambas rutas de appointments.
 - ~~**Mensajes duplicados al agendar:**~~ El paciente y psicólogo veían 2 mensajes cada uno. Corregido: admin envía ambos mensajes; para citas de paciente solo se notifica al psicólogo.
 - ~~**Link de Google Meet no visible:**~~ El botón de "Unirse a Google Meet" ahora aparece con estilos del tema (`text-primary bg-primary/10`) en ambos dashboards.
