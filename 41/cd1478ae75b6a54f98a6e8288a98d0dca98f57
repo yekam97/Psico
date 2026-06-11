@@ -1,0 +1,22 @@
+.gitignore
+  s_4945821832d9c8::t_3c708cac15dfa8 47
+prisma/seed.ts
+  s_4945821832d9c8::t_ccac3e43395d59 81-83,90,93-103
+  s_4945821832d9c8::t_04ede2139c587a 84-89,91-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "41cd1478ae75b6a54f98a6e8288a98d0dca98f57",
+  "prompts": {},
+  "sessions": {
+    "s_4945821832d9c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8cbc585-eb58-4f60-bd38-a6be854dd5b0",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
