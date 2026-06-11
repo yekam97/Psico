@@ -1,0 +1,19 @@
+package-lock.json
+  s_4945821832d9c8::t_9e7325b9d8e66f 7435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "71a5e54cee1f551fafdcc31bffbfe80863d69f89",
+  "prompts": {},
+  "sessions": {
+    "s_4945821832d9c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8cbc585-eb58-4f60-bd38-a6be854dd5b0",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
