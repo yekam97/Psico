@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { createGoogleCalendarEvent } from "@/lib/google-calendar";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
+
+const TIMEZONE = "America/Bogota";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
 
             const attendeeEmails = [patient.user.email, psychologist.user.email].filter(Boolean);
             const isVirtual = type === "VIRTUAL";
-            const dateStr = format(start, "EEEE d 'de' MMMM, h:mm a", { locale: es });
+            const dateStr = formatInTimeZone(start, TIMEZONE, "EEEE d 'de' MMMM, h:mm a", { locale: es });
             const typeLabel = isVirtual ? "Virtual (Google Meet)" : "Presencial";
 
             const { eventId, meetingLink } = await createGoogleCalendarEvent({
@@ -137,7 +139,8 @@ export async function POST(req: NextRequest) {
             console.warn(`Patient ${patientId} booked without available therapy sessions.`);
         }
 
-        // Internal notification to patient and psychologist about the new appointment
+        // Internal notification to psychologist about the new appointment
+        // (Patient doesn't need message notification since they just booked)
         try {
             const [patientProfile, psychologistProfile] = await Promise.all([
                 (prisma as any).profile.findUnique({
@@ -151,36 +154,23 @@ export async function POST(req: NextRequest) {
             ]);
 
             const isVirtual = type === "VIRTUAL";
-            const dateStr = format(start, "EEEE d 'de' MMMM, h:mm a", { locale: es });
+            const dateStr = formatInTimeZone(start, TIMEZONE, "EEEE d 'de' MMMM, h:mm a", { locale: es });
             const typeLabel = isVirtual ? "Virtual" : "Presencial";
 
-            let patientMessage = `Tu cita ha sido agendada exitosamente.\n\n📅 Fecha: ${dateStr}\n👤 Psicólogo: ${psychologistProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
             let psychologistMessage = `Nueva cita agendada.\n\n📅 Fecha: ${dateStr}\n👤 Paciente: ${patientProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
 
             if (isVirtual && appointment.meetingLink) {
-                const meetLink = `\n\n🔗 Link de Google Meet:\n${appointment.meetingLink}`;
-                patientMessage += meetLink;
-                psychologistMessage += meetLink;
+                psychologistMessage += `\n\n🔗 Link de Google Meet:\n${appointment.meetingLink}`;
             }
 
-            await Promise.all([
-                (prisma as any).message.create({
-                    data: {
-                        companyId,
-                        senderId: psychologistProfile.user.id,
-                        receiverId: patientProfile.user.id,
-                        content: patientMessage
-                    }
-                }),
-                (prisma as any).message.create({
-                    data: {
-                        companyId,
-                        senderId: patientProfile.user.id,
-                        receiverId: psychologistProfile.user.id,
-                        content: psychologistMessage
-                    }
-                })
-            ]);
+            await (prisma as any).message.create({
+                data: {
+                    companyId,
+                    senderId: patientProfile.user.id,
+                    receiverId: psychologistProfile.user.id,
+                    content: psychologistMessage
+                }
+            });
         } catch (notificationError) {
             console.error("Error sending appointment notification (non-blocking):", notificationError);
         }
