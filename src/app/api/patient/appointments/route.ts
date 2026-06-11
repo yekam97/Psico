@@ -137,6 +137,41 @@ export async function POST(req: NextRequest) {
             console.warn(`Patient ${patientId} booked without available therapy sessions.`);
         }
 
+        // Internal notification to patient about the new appointment
+        try {
+            const [patientProfile, psychologistProfile] = await Promise.all([
+                (prisma as any).profile.findUnique({
+                    where: { id: patientId },
+                    include: { user: { select: { id: true, name: true } } }
+                }),
+                (prisma as any).profile.findUnique({
+                    where: { id: psychologistId },
+                    include: { user: { select: { id: true, name: true } } }
+                })
+            ]);
+
+            const isVirtual = type === "VIRTUAL";
+            const dateStr = format(start, "EEEE d 'de' MMMM, h:mm a", { locale: es });
+            const typeLabel = isVirtual ? "Virtual" : "Presencial";
+
+            let messageContent = `Tu cita ha sido agendada exitosamente.\n\n📅 Fecha: ${dateStr}\n👤 Psicólogo: ${psychologistProfile.user.name}\n📍 Modalidad: ${typeLabel}`;
+
+            if (isVirtual && appointment.meetingLink) {
+                messageContent += `\n\n🔗 Link de Google Meet:\n${appointment.meetingLink}`;
+            }
+
+            await (prisma as any).message.create({
+                data: {
+                    senderId: psychologistProfile.user.id,
+                    receiverId: patientProfile.user.id,
+                    content: messageContent,
+                    type: "NOTIFICATION"
+                }
+            });
+        } catch (notificationError) {
+            console.error("Error sending appointment notification (non-blocking):", notificationError);
+        }
+
         return NextResponse.json(appointment);
     } catch (error) {
         console.error("Error creating patient appointment:", error);
