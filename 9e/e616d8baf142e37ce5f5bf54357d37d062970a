@@ -1,0 +1,99 @@
+src/app/api/admin/availability/[psychologistId]/route.ts
+  s_4945821832d9c8::t_9283f36fb30caf 1-99
+src/components/ThemeToggle.tsx
+  s_7e97a33a97c72a::t_cf521efcef5e57 1-7,9-13,20-36,39-43,50-63
+  s_7e97a33a97c72a::t_6bb05b747f7ae9 8,14-19
+  s_7e97a33a97c72a::t_cff88d4999b713 37-38,44-49
+package.json
+  s_7e97a33a97c72a::t_f9584aeb8c5167 29
+src/app/layout.tsx
+  s_7e97a33a97c72a::t_0d9718da802e8d 22,31,33-40
+README.md
+  s_4945821832d9c8::t_22436eab8887de 36-48
+  s_4809a1e527fc02::t_b69690bf795448 188
+  s_4945821832d9c8::t_4af3eddaae917f 141
+  s_2617a2bf1c839b::t_1c576bc98d2d08 49-68
+  s_2617a2bf1c839b::t_7d75b8362223c5 123-124
+  s_4945821832d9c8::t_83c023c556b6ee 130
+  s_2617a2bf1c839b::t_c3440e30c980d1 221-223
+  s_2617a2bf1c839b::t_f0f578b8ac24c2 235
+  s_4945821832d9c8::t_a382dc218080de 86
+  s_4945821832d9c8::t_b300bf9795e5da 111
+  s_7e97a33a97c72a::t_cfb76613836aaf 190
+  s_2617a2bf1c839b::t_36b88ff48fa742 192
+  s_4945821832d9c8::t_245536057c9e9c 236
+src/app/globals.css
+  s_7e97a33a97c72a::t_c7f8e59f21156b 46-48
+  s_7e97a33a97c72a::t_53fe68ca61fb0e 3-4
+src/app/dashboard/admin/users/page.tsx
+  s_4945821832d9c8::t_6b6ba66b333f5f 83,88-142
+  s_4945821832d9c8::t_3430c373d9cb84 745-746,754-778
+src/app/dashboard/patient/book/page.tsx
+  s_4945821832d9c8::t_7ee12b537938c6 191
+  s_4945821832d9c8::t_8017f292191cf3 23-28
+  s_4945821832d9c8::t_80826ab16b9b23 240
+  s_4945821832d9c8::t_6bea6bf9136d71 270-272
+  s_4945821832d9c8::t_231892d962c1e6 67-92
+  s_4945821832d9c8::t_888824264e9eb4 183-190,192-226
+  s_4945821832d9c8::t_d8b743c1efb3b6 3,18-22,29-35,41,47-49
+src/app/api/patient/availability/[psychologistId]/route.ts
+  s_4945821832d9c8::t_5016d7700d7002 1-99
+src/app/login/page.tsx
+  s_7e97a33a97c72a::t_4f230d6263d4fc 51
+  s_7e97a33a97c72a::t_a1cfe69178c50b 43,47
+  s_7e97a33a97c72a::t_f1288cd153ecb0 50
+  s_7e97a33a97c72a::t_68c60b5611b5e3 64
+  s_7e97a33a97c72a::t_f2449a33707356 44-46
+  s_7e97a33a97c72a::t_bd1afc13c5d3ba 62
+  s_7e97a33a97c72a::t_6a2865610c318a 77
+  s_7e97a33a97c72a::t_1a026e6f31ded9 55
+  s_7e97a33a97c72a::t_ef4a853081f38f 79
+  s_7e97a33a97c72a::t_ba5efb9ec75420 8
+  s_7e97a33a97c72a::t_63f615a6fdf8cd 84
+  s_7e97a33a97c72a::t_b172ab4036692a 69
+  s_7e97a33a97c72a::t_c1ce8ac17423b0 100
+src/components/providers/ThemeProvider.tsx
+  s_7e97a33a97c72a::t_a5f8e9b77ce8d9 1-17
+tailwind.config.js
+  s_7e97a33a97c72a::t_9624699b2bafd4 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "9ee616d8baf142e37ce5f5bf54357d37d062970a",
+  "prompts": {},
+  "sessions": {
+    "s_2617a2bf1c839b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38ebdef6-c8f2-42eb-8d61-8e8657cfd855",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    },
+    "s_4809a1e527fc02": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0be20aa-bb54-4cf3-a56b-56794db1eaac",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    },
+    "s_4945821832d9c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8cbc585-eb58-4f60-bd38-a6be854dd5b0",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    },
+    "s_7e97a33a97c72a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "66cb4b7c-f567-4125-adb7-52007631b557",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Nicolay J. González <nicolay.joyagonzalez@mercadolibre.com.co>"
+    }
+  }
+}
