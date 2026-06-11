@@ -78,6 +78,29 @@ async function main() {
                     }
                 });
             }
+
+            // If Psychologist, create default availability (Mon-Fri 9:00-17:00)
+            if (userData.role === "PSYCHOLOGIST") {
+                // Clear existing availability for this psychologist
+                await prisma.availability.deleteMany({
+                    where: { psychologistId: profile.id }
+                });
+
+                // Create availability for Mon-Fri
+                for (let dayOfWeek = 1; dayOfWeek <= 5; dayOfWeek++) {
+                    await prisma.availability.create({
+                        data: {
+                            psychologistId: profile.id,
+                            companyId: company.id,
+                            dayOfWeek,
+                            startTime: "09:00",
+                            endTime: "17:00",
+                            isActive: true
+                        }
+                    });
+                }
+                console.log(`    Created availability for ${userData.name}`);
+            }
         }
     }
 
