@@ -11,8 +11,12 @@ import {
 import axios from "axios";
 import { toast } from "sonner";
 
+const handleConnectCalendar = () => {
+    toast.info("La sincronización personal con Google Calendar aún no está disponible. Vuelve pronto.");
+};
+
 export default function AvailabilityPage() {
-    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
     const [schedule, setSchedule] = useState<Record<string, { active: boolean; start: string; end: string }>>({
         Lunes: { active: false, start: "08:00", end: "17:00" },
         Martes: { active: false, start: "08:00", end: "17:00" },
@@ -20,6 +24,7 @@ export default function AvailabilityPage() {
         Jueves: { active: false, start: "08:00", end: "17:00" },
         Viernes: { active: false, start: "08:00", end: "15:00" },
         Sábado: { active: false, start: "09:00", end: "12:00" },
+        Domingo: { active: false, start: "09:00", end: "12:00" },
     });
 
     const [loading, setLoading] = useState(true);
@@ -142,7 +147,10 @@ export default function AvailabilityPage() {
                     <h4 className="text-xl font-light">Sincronización Personal</h4>
                     <p className="text-sm text-white/50 mt-1">Vincula tu Google Calendar para bloquear horarios personales.</p>
                 </div>
-                <button className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl transition-all border border-white/10 text-sm font-medium">
+                <button
+                    onClick={handleConnectCalendar}
+                    className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl transition-all border border-white/10 text-sm font-medium"
+                >
                     Conectar Calendar
                 </button>
             </div>

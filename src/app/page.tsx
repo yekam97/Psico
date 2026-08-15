@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ContactForm from "@/components/landing/ContactForm";
 import {
   Calendar,
   Search,
@@ -58,15 +59,6 @@ export default function Home() {
                 fill
                 className="object-cover"
               />
-            </div>
-            <div className="absolute -bottom-8 -left-8 bg-white p-6 rounded-3xl shadow-xl flex items-center gap-4 border border-gray-100 animate-bounce transition-all duration-1000">
-              <div className="w-12 h-12 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center">
-                <Calendar size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-tighter">Nueva Cita</p>
-                <p className="text-sm font-bold">Dr. Roberto Casas</p>
-              </div>
             </div>
           </div>
         </div>
@@ -135,33 +127,22 @@ export default function Home() {
                 Agenda una breve llamada de 15 minutos para enseñarte cómo HealthSaaS puede ahorrarte hasta 5 horas semanales de gestión administrativa.
               </p>
               <div className="space-y-4 pt-4">
-                <div className="flex items-center gap-4 text-white/80 hover:text-white transition-colors cursor-pointer">
+                <a href="mailto:hola@healthsaas.com" className="flex items-center gap-4 text-white/80 hover:text-white transition-colors w-fit">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
                     <Mail size={20} />
                   </div>
-                  <span>hola@healthsaas.com</span>
-                </div>
-                <div className="flex items-center gap-4 text-white/80 hover:text-white transition-colors cursor-pointer">
+                  <span className="select-text">hola@healthsaas.com</span>
+                </a>
+                <a href="tel:+573175244453" className="flex items-center gap-4 text-white/80 hover:text-white transition-colors w-fit">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
                     <Phone size={20} />
                   </div>
-                  <span>+57 317 524 4453</span>
-                </div>
+                  <span className="select-text">+57 317 524 4453</span>
+                </a>
               </div>
             </div>
             <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl relative">
-              <div className="space-y-6">
-                <h3 className="text-2xl text-primary font-bold">Solicitar contacto</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <input type="text" placeholder="Nombre completo" className="w-full bg-gray-50 border-none rounded-2xl p-4 text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all" />
-                  <input type="email" placeholder="Correo electrónico" className="w-full bg-gray-50 border-none rounded-2xl p-4 text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all" />
-                  <textarea placeholder="Cuéntanos sobre tu centro" rows={4} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all" />
-                  <button className="w-full bg-secondary text-primary-dark py-5 rounded-2xl font-bold hover:bg-secondary-light hover:shadow-lg transition-all">
-                    Enviar solicitud
-                  </button>
-                </div>
-                <p className="text-center text-[10px] text-gray-400">Al enviar tus datos, aceptas nuestras políticas de privacidad.</p>
-              </div>
+              <ContactForm />
             </div>
           </div>
         </div>

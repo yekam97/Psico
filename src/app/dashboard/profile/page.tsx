@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
     User as UserIcon,
-    Mail,
     Shield,
-    Phone,
-    Lock,
     Save,
     CheckCircle2,
     Camera,
@@ -17,6 +14,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 export default function ProfilePage() {
     const { data: session, update: updateSession } = useSession();
@@ -28,6 +27,10 @@ export default function ProfilePage() {
         phone: "",
     });
 
+    const [avatarUrl, setAvatarUrl] = useState<string>((session?.user as any)?.avatarUrl || "");
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const [branding, setBranding] = useState({
         logoUrl: "",
         primaryColor: "#24343B",
@@ -35,36 +38,81 @@ export default function ProfilePage() {
     });
 
     const [isSaving, setIsSaving] = useState(false);
-    const [isLoading, setIsLoading] = useState(role === "ADMIN");
+    const [isLoading, setIsLoading] = useState(true);
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        if (role === "ADMIN") {
-            const fetchBranding = async () => {
-                try {
-                    const res = await axios.get("/api/admin/settings");
-                    setBranding({
-                        logoUrl: res.data.logoUrl || "",
-                        primaryColor: res.data.primaryColor || "#24343B",
-                        secondaryColor: res.data.secondaryColor || "#EBA554"
-                    });
-                } catch (error) {
-                    console.error("Error fetching branding:", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            fetchBranding();
+        if (!session?.user) return;
+
+        setFormData((prev) => ({ ...prev, name: session.user?.name || "", email: session.user?.email || "" }));
+        setAvatarUrl((session.user as any)?.avatarUrl || "");
+
+        const fetchProfile = async () => {
+            try {
+                const res = await axios.get("/api/profile");
+                setFormData((prev) => ({ ...prev, phone: res.data.phone || "" }));
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
+        };
+
+        const fetchBranding = async () => {
+            try {
+                const res = await axios.get("/api/admin/settings");
+                setBranding({
+                    logoUrl: res.data.logoUrl || "",
+                    primaryColor: res.data.primaryColor || "#24343B",
+                    secondaryColor: res.data.secondaryColor || "#EBA554"
+                });
+            } catch (error) {
+                console.error("Error fetching branding:", error);
+            }
+        };
+
+        Promise.all([fetchProfile(), role === "ADMIN" ? fetchBranding() : Promise.resolve()])
+            .finally(() => setIsLoading(false));
+    }, [session?.user, role]);
+
+    const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Selecciona un archivo de imagen válido");
+            return;
         }
-    }, [role]);
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("La imagen no puede superar 5MB");
+            return;
+        }
+
+        setUploadingAvatar(true);
+        try {
+            const userId = (session?.user as any)?.id || "anon";
+            const path = `avatars/${userId}-${Date.now()}-${file.name}`;
+            const fileRef = storageRef(storage, path);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+            setAvatarUrl(url);
+            toast.success("Foto cargada. No olvides guardar los cambios.");
+        } catch (error) {
+            console.error("Error uploading avatar:", error);
+            toast.error("No se pudo subir la imagen");
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            // Save Profile
-            // In a real app index route for profile update
-            // await axios.put("/api/profile", formData);
+            const res = await axios.put("/api/profile", {
+                name: formData.name,
+                phone: formData.phone,
+                avatarUrl
+            });
 
             if (role === "ADMIN") {
                 await axios.put("/api/admin/settings", {
@@ -73,9 +121,7 @@ export default function ProfilePage() {
                 toast.success("Branding actualizado correctamente");
             }
 
-            if (formData.name !== session?.user?.name) {
-                await updateSession({ name: formData.name });
-            }
+            await updateSession({ name: res.data.name, avatarUrl: res.data.avatarUrl });
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
@@ -113,14 +159,30 @@ export default function ProfilePage() {
                 {/* Avatar Section */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm flex flex-col items-center gap-6 relative group">
-                        <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center text-primary relative overflow-hidden ring-4 ring-primary/5">
-                            {role === 'ADMIN' && branding.logoUrl ? (
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleAvatarSelect}
+                        />
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center text-primary relative overflow-hidden ring-4 ring-primary/5 cursor-pointer"
+                        >
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+                            ) : role === 'ADMIN' && branding.logoUrl ? (
                                 <img src={branding.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                             ) : (
                                 <UserIcon size={64} className="opacity-20" />
                             )}
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                <Camera className="text-white" size={24} />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                {uploadingAvatar ? (
+                                    <Loader2 className="text-white animate-spin" size={24} />
+                                ) : (
+                                    <Camera className="text-white" size={24} />
+                                )}
                             </div>
                         </div>
                         <div className="text-center">
@@ -130,7 +192,7 @@ export default function ProfilePage() {
                         <div className="w-full pt-6 border-t border-gray-50 flex gap-4 justify-center">
                             <div className="text-center">
                                 <p className="text-xs font-bold text-gray-400 uppercase">Estado</p>
-                                <p className="text-sm font-medium text-green-500">Verificado</p>
+                                <p className="text-sm font-medium text-green-500">Activo</p>
                             </div>
                         </div>
                     </div>
@@ -173,6 +235,16 @@ export default function ProfilePage() {
                                         value={formData.email}
                                         disabled
                                         className="w-full px-5 py-4 bg-gray-100 border border-transparent rounded-2xl text-gray-400 cursor-not-allowed text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase">Teléfono</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        placeholder="Ej. 3001234567"
+                                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all text-sm"
                                     />
                                 </div>
                             </div>
@@ -251,29 +323,6 @@ export default function ProfilePage() {
                             </button>
                         </div>
                     </form>
-
-                    {/* Additional Settings for roles */}
-                    {role !== "ADMIN" && (
-                        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
-                            <h3 className="text-xl font-medium text-gray-800">Notificaciones</h3>
-                            <div className="space-y-4">
-                                {[
-                                    { label: "Recordatorios de citas (Email)", desc: "Recibe un correo 24 horas antes." },
-                                    { label: "Alertas vía WhatsApp", desc: "Notificaciones directas a tu móvil." }
-                                ].map((pref, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors">
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-800">{pref.label}</p>
-                                            <p className="text-xs text-gray-400">{pref.desc}</p>
-                                        </div>
-                                        <div className="w-10 h-5 bg-primary rounded-full p-1 relative cursor-pointer">
-                                            <div className="w-3 h-3 bg-white rounded-full absolute right-1 shadow-sm" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

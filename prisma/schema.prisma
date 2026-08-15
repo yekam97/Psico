@@ -33,6 +33,7 @@ model User {
   password         String
   role             Role      @default(PATIENT)
   name             String?
+  avatarUrl        String?
   companyId        String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

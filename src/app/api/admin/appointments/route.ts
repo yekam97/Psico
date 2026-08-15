@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
+import { parseClinicDateTime } from "@/lib/timezone";
 
 const TIMEZONE = "America/Bogota";
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "El paciente no tiene saldo de terapias disponible." }, { status: 400 });
         }
 
-        const start = new Date(startTime);
+        const start = parseClinicDateTime(startTime);
         const end = new Date(start.getTime() + (duration || 60) * 60000);
 
         // Psychologist Overlap Check

@@ -33,7 +33,8 @@ export const authOptions: NextAuthOptions = {
                             name: user.name,
                             role: user.role,
                             companyId: user.companyId,
-                            profileId: user.profile?.id
+                            profileId: user.profile?.id,
+                            avatarUrl: (user as any).avatarUrl
                         };
                     }
                 } catch (e) {
@@ -45,12 +46,20 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.role = (user as any).role;
                 token.id = user.id;
                 token.companyId = (user as any).companyId;
                 token.profileId = (user as any).profileId;
+                token.avatarUrl = (user as any).avatarUrl;
+            }
+            // Allow the client to push updates (e.g. after saving the profile
+            // page) via useSession().update({ name, avatarUrl }) without a
+            // full re-login.
+            if (trigger === "update" && session) {
+                if (typeof session.name === "string") token.name = session.name;
+                if (typeof session.avatarUrl === "string") token.avatarUrl = session.avatarUrl;
             }
             return token;
         },
@@ -60,6 +69,8 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).id = token.id;
                 (session.user as any).companyId = token.companyId;
                 (session.user as any).profileId = token.profileId;
+                (session.user as any).avatarUrl = token.avatarUrl;
+                if (token.name) session.user.name = token.name as string;
             }
             return session;
         },

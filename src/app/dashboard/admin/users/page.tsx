@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Users as UsersIcon } from "lucide-react";
+import { toLocalDateInputValue } from "@/lib/date-input";
 
 interface UserProfile {
     id: string;
@@ -79,7 +80,7 @@ export default function AdminUsersPage() {
 
     const [bookingData, setBookingData] = useState({
         psychologistId: "",
-        date: new Date().toISOString().split('T')[0],
+        date: toLocalDateInputValue(new Date()),
         time: "",
         type: "VIRTUAL" as "VIRTUAL" | "IN_PERSON",
         notes: "Cita programada por administración"
@@ -92,14 +93,13 @@ export default function AdminUsersPage() {
 
     // Helper functions for date constraints (3 months for admin)
     function getMinDate(): string {
-        const now = new Date();
-        return now.toISOString().split('T')[0];
+        return toLocalDateInputValue(new Date());
     }
 
     function getMaxDate(): string {
         const now = new Date();
         now.setMonth(now.getMonth() + 3);
-        return now.toISOString().split('T')[0];
+        return toLocalDateInputValue(now);
     }
 
     function formatTimeSlot(time24: string): string {
@@ -222,11 +222,16 @@ export default function AdminUsersPage() {
         if (!editingUser) return;
         setSubmitting(true);
         try {
-            const startTime = new Date(`${bookingData.date}T${bookingData.time}`);
+            // Sent as a naive "YYYY-MM-DDTHH:mm:00" string (no offset) — the API
+            // interprets it as clinic-local (America/Bogota) wall-clock time.
+            // Do NOT convert with `new Date(...).toISOString()` here: that would
+            // interpret the string in *this browser's* local timezone instead,
+            // which silently mismatches the server's interpretation for anyone
+            // not set to America/Bogota.
             await axios.post("/api/admin/appointments", {
                 patientId: editingUser.profile?.id,
                 psychologistId: bookingData.psychologistId,
-                startTime: startTime.toISOString(),
+                startTime: `${bookingData.date}T${bookingData.time}:00`,
                 type: bookingData.type,
                 notes: bookingData.notes
             });

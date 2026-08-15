@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
+import { clinicDayBounds, dayOfWeekForDateString, formatClinicTime, parseClinicDateTime } from "@/lib/timezone";
 
 export async function GET(
     request: NextRequest,
@@ -24,8 +25,7 @@ export async function GET(
     }
 
     try {
-        const targetDate = new Date(dateParam);
-        const dayOfWeek = targetDate.getDay();
+        const dayOfWeek = dayOfWeekForDateString(dateParam);
 
         const availabilities = await prisma.availability.findMany({
             where: {
@@ -40,10 +40,7 @@ export async function GET(
             return NextResponse.json({ slots: [], message: "No hay disponibilidad para este día" });
         }
 
-        const startOfDay = new Date(targetDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(targetDate);
-        endOfDay.setHours(23, 59, 59, 999);
+        const { start: startOfDay, end: endOfDay } = clinicDayBounds(dateParam);
 
         const existingAppointments = await prisma.appointment.findMany({
             where: {
@@ -55,9 +52,7 @@ export async function GET(
         });
 
         const bookedSlots = new Set(
-            existingAppointments.map(apt =>
-                apt.startTime.toISOString().slice(11, 16)
-            )
+            existingAppointments.map(apt => formatClinicTime(apt.startTime))
         );
 
         const now = new Date();
@@ -75,8 +70,7 @@ export async function GET(
             while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
                 const slotTime = `${String(currentHour).padStart(2, "0")}:${String(currentMin).padStart(2, "0")}`;
 
-                const slotDateTime = new Date(targetDate);
-                slotDateTime.setHours(currentHour, currentMin, 0, 0);
+                const slotDateTime = parseClinicDateTime(`${dateParam}T${slotTime}:00`);
 
                 const isNotBooked = !bookedSlots.has(slotTime);
                 const isInFuture = slotDateTime > oneHourFromNow;

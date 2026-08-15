@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
+import { parseClinicDateTime } from "@/lib/timezone";
 
 const TIMEZONE = "America/Bogota";
 
@@ -24,7 +25,17 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const start = new Date(startTime);
+        // Enforce that the patient has therapy inventory before letting them book
+        // (mirrors the same check on the admin booking route).
+        const inventory = await (prisma as any).therapyInventory.findUnique({
+            where: { patientId }
+        });
+
+        if (!inventory || inventory.remaining <= 0) {
+            return NextResponse.json({ error: "No tienes sesiones disponibles. Contacta a tu centro para recargar tu saldo de terapias." }, { status: 400 });
+        }
+
+        const start = parseClinicDateTime(startTime);
         const end = new Date(start.getTime() + (duration || 60) * 60000);
 
         // Psychologist Overlap Check
@@ -135,31 +146,21 @@ export async function POST(req: NextRequest) {
             console.error("Google Calendar integration error (non-blocking):", calendarError);
         }
 
-        // Deduct therapy session if applicable (Assuming it costs 1 session)
-        const inventory = await (prisma as any).therapyInventory.findUnique({
-            where: { patientId }
-        });
-
-        if (inventory && inventory.remaining > 0) {
-            await (prisma as any).therapyInventory.update({
-                where: { patientId },
-                data: {
-                    remaining: { decrement: 1 },
-                    history: {
-                        create: {
-                            amount: -1,
-                            type: "SESSION_COMPLETED",
-                            appointmentId: appointment.id,
-                            notes: "Cita agendada"
-                        }
+        // Deduct the therapy session (balance was already confirmed > 0 above)
+        await (prisma as any).therapyInventory.update({
+            where: { patientId },
+            data: {
+                remaining: { decrement: 1 },
+                history: {
+                    create: {
+                        amount: -1,
+                        type: "SESSION_COMPLETED",
+                        appointmentId: appointment.id,
+                        notes: "Cita agendada"
                     }
                 }
-            });
-        } else {
-            // If they don't have sessions, maybe we shouldn't allow booking?
-            // For now, we allow it but log it.
-            console.warn(`Patient ${patientId} booked without available therapy sessions.`);
-        }
+            }
+        });
 
         // Internal notification to psychologist about the new appointment
         // (Patient doesn't need message notification since they just booked)

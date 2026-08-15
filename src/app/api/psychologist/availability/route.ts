@@ -48,6 +48,7 @@ export async function GET() {
             "Jueves": { active: false, start: "08:00", end: "17:00" },
             "Viernes": { active: false, start: "08:00", end: "17:00" },
             "Sábado": { active: false, start: "09:00", end: "12:00" },
+            "Domingo": { active: false, start: "09:00", end: "12:00" },
         };
 
         for (const avail of availabilities) {

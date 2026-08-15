@@ -14,16 +14,16 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { toLocalDateInputValue } from "@/lib/date-input";
 
 function getMinDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return toLocalDateInputValue(new Date());
 }
 
 function getMaxDate(): string {
     const now = new Date();
     now.setMonth(now.getMonth() + 2);
-    return now.toISOString().split('T')[0];
+    return toLocalDateInputValue(now);
 }
 
 function formatTimeSlot(time24: string): string {
