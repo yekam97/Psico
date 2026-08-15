@@ -11,7 +11,8 @@ import {
     CheckCircle2,
     History,
     Ticket,
-    Send
+    Send,
+    Trash2
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -71,6 +72,20 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
         }
     };
 
+    const handleDeleteNote = async (noteId: string) => {
+        if (!confirm("¿Está seguro de que desea eliminar esta nota? Esta acción no se puede deshacer.")) return;
+
+        try {
+            await axios.delete(`/api/psychologist/notes/${id}/${noteId}`);
+            toast.success("Nota eliminada correctamente");
+            // Refresh notes
+            const notesRes = await axios.get(`/api/psychologist/notes/${id}`);
+            setNotes(notesRes.data);
+        } catch (error) {
+            toast.error("Error al eliminar la nota");
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center py-40">
@@ -96,22 +111,22 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* Patient Sidebar Info */}
                 <div className="space-y-6">
-                    <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm text-center">
-                        <div className="w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary text-3xl font-bold mx-auto mb-6">
+                    <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm text-center">
+                        <div className="w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary dark:text-primary-light text-3xl font-bold mx-auto mb-6">
                             {patient.name?.charAt(0)}
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-1">{patient.name}</h3>
-                        <p className="text-gray-400 text-sm mb-6 uppercase tracking-widest font-medium">Paciente</p>
+                        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">{patient.name}</h3>
+                        <p className="text-gray-400 dark:text-gray-500 text-sm mb-6 uppercase tracking-widest font-medium">Paciente</p>
 
-                        <div className="space-y-3 text-left bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                            <div className="flex items-center gap-3 text-gray-600">
+                        <div className="space-y-3 text-left bg-gray-50 dark:bg-[#2a2a2a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                                 <Ticket size={16} className="text-primary" />
                                 <div className="flex flex-col">
                                     <span className="text-[10px] uppercase font-bold text-gray-400">Terapias Restantes</span>
                                     <span className="font-bold text-lg">{patient.therapyBalance}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 text-gray-600">
+                            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                                 <Calendar size={16} className="text-secondary" />
                                 <div className="flex flex-col">
                                     <span className="text-[10px] uppercase font-bold text-gray-400">Última Cita</span>
@@ -130,11 +145,11 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                         <div className="p-3 bg-primary/10 rounded-2xl text-primary">
                             <StickyNote size={24} />
                         </div>
-                        <h3 className="text-2xl font-light text-gray-800">Historial de Notas Clínicas</h3>
+                        <h3 className="text-2xl font-light text-gray-800 dark:text-gray-100">Historial de Notas Clínicas</h3>
                     </div>
 
                     {/* New Note Form */}
-                    <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm">
+                    <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm">
                         <form onSubmit={handleAddNote} className="space-y-4">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nueva Nota de Seguimiento</label>
                             <textarea
@@ -142,7 +157,7 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                                 value={newNote}
                                 onChange={(e) => setNewNote(e.target.value)}
                                 placeholder="Escribe aquí los detalles del progreso de la sesión..."
-                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none"
+                                className="w-full bg-gray-50 dark:bg-[#2a2a2a] dark:text-white border border-transparent rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-[#333] focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none"
                             />
                             <div className="flex justify-end">
                                 <button
@@ -164,7 +179,7 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                             </div>
                         ) : (
                             notes.map((note) => (
-                                <div key={note.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden group hover:border-primary/20 transition-all">
+                                <div key={note.id} className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group hover:border-primary/20 transition-all">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary">
@@ -178,7 +193,16 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                                             {note.psychologist.user.name}
                                         </span>
                                     </div>
-                                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                                    <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleDeleteNote(note.id)}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                            title="Eliminar nota"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))
                         )}

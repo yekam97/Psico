@@ -27,6 +27,28 @@ export async function POST(req: NextRequest) {
         const start = new Date(startTime);
         const end = new Date(start.getTime() + (duration || 60) * 60000);
 
+        // Psychologist Overlap Check
+        const overlappingPsychologistAppt = await (prisma as any).appointment.findFirst({
+            where: {
+                psychologistId,
+                status: "SCHEDULED",
+                OR: [
+                    {
+                        startTime: { lte: start },
+                        endTime: { gt: start }
+                    },
+                    {
+                        startTime: { lt: end },
+                        endTime: { gte: end }
+                    }
+                ]
+            }
+        });
+
+        if (overlappingPsychologistAppt) {
+            return NextResponse.json({ error: "El psicólogo ya tiene una cita programada en ese horario." }, { status: 400 });
+        }
+
         // Room Availability Check for IN_PERSON appointments
         if (type === "IN_PERSON") {
             const company = await (prisma.company as any).findUnique({

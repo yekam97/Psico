@@ -23,8 +23,39 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+        // Enforce that the user has therapy inventory
+        const inventory = await (prisma as any).therapyInventory.findUnique({
+            where: { patientId }
+        });
+
+        if (!inventory || inventory.remaining <= 0) {
+            return NextResponse.json({ error: "El paciente no tiene saldo de terapias disponible." }, { status: 400 });
+        }
+
         const start = new Date(startTime);
         const end = new Date(start.getTime() + (duration || 60) * 60000);
+
+        // Psychologist Overlap Check
+        const overlappingPsychologistAppt = await (prisma as any).appointment.findFirst({
+            where: {
+                psychologistId,
+                status: "SCHEDULED",
+                OR: [
+                    {
+                        startTime: { lte: start },
+                        endTime: { gt: start }
+                    },
+                    {
+                        startTime: { lt: end },
+                        endTime: { gte: end }
+                    }
+                ]
+            }
+        });
+
+        if (overlappingPsychologistAppt) {
+            return NextResponse.json({ error: "El psicólogo ya tiene una cita programada en ese horario." }, { status: 400 });
+        }
 
         // Room Availability Check for IN_PERSON appointments
         if (type === "IN_PERSON") {
@@ -70,6 +101,22 @@ export async function POST(req: NextRequest) {
                 type,
                 notes,
                 status: "SCHEDULED"
+            }
+        });
+
+        // Deduct therapy session since admin scheduled it
+        await (prisma as any).therapyInventory.update({
+            where: { patientId },
+            data: {
+                remaining: { decrement: 1 },
+                history: {
+                    create: {
+                        amount: -1,
+                        type: "SESSION_COMPLETED",
+                        appointmentId: appointment.id,
+                        notes: "Cita agendada por administrador"
+                    }
+                }
             }
         });
 

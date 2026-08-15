@@ -14,7 +14,7 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const companyId = (session.user as any).companyId;
+    const companyId = (session.user as { companyId?: string }).companyId;
     if (!companyId) {
         return NextResponse.json({
             name: "HealthSaaS",
@@ -26,7 +26,8 @@ export async function GET() {
     }
 
     try {
-        const company = await (prisma.company as any).findUnique({
+        const company = await prisma.company.findUnique({
+
             where: { id: companyId },
             select: {
                 name: true,

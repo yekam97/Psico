@@ -104,6 +104,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
+        if (user.role === "ADMIN") {
+            const adminCount = await (prisma as any).user.count({
+                where: { companyId, role: "ADMIN" }
+            });
+
+            if (adminCount <= 1) {
+                return NextResponse.json({ error: "Cannot delete the last administrator" }, { status: 400 });
+            }
+        }
+
         // Delete user ( cascade delete via prisma transaction to ensure clean up if not using native DB cascade)
         await prisma.$transaction(async (tx) => {
             if (user.profile) {
