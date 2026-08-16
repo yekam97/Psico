@@ -41,11 +41,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Pin native form-control rendering (input/select text, autofill,
+     scrollbars) to the SITE's actual light/dark class instead of letting
+     the browser/OS's own "force dark" setting decide independently — a
+     forced-dark browser can otherwise invert a control's background but
+     not always its text (or vice versa), producing invisible white-on-white
+     text even though every color here is set correctly. */
+  color-scheme: light;
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  color-scheme: dark;
 }
 
 body {

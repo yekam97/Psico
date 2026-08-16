@@ -235,7 +235,7 @@ export default function AdminSettingsPage() {
                                             <input
                                                 disabled={businessHours[day.id]?.closed}
                                                 type="time"
-                                                className="bg-white border-none rounded-lg px-2 py-1 text-sm shadow-sm focus:ring-1 focus:ring-primary disabled:opacity-30"
+                                                className="bg-white border-none rounded-lg px-2 py-1 text-sm text-gray-900 shadow-sm focus:ring-1 focus:ring-primary disabled:opacity-30"
                                                 value={businessHours[day.id]?.open}
                                                 onChange={(e) => setBusinessHours({
                                                     ...businessHours,
@@ -246,7 +246,7 @@ export default function AdminSettingsPage() {
                                             <input
                                                 disabled={businessHours[day.id]?.closed}
                                                 type="time"
-                                                className="bg-white border-none rounded-lg px-2 py-1 text-sm shadow-sm focus:ring-1 focus:ring-primary disabled:opacity-30"
+                                                className="bg-white border-none rounded-lg px-2 py-1 text-sm text-gray-900 shadow-sm focus:ring-1 focus:ring-primary disabled:opacity-30"
                                                 value={businessHours[day.id]?.close}
                                                 onChange={(e) => setBusinessHours({
                                                     ...businessHours,
@@ -285,7 +285,7 @@ export default function AdminSettingsPage() {
                                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="text"
-                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                         value={adminInfo.name}
                                         onChange={(e) => setAdminInfo({ ...adminInfo, name: e.target.value })}
                                     />
@@ -297,7 +297,7 @@ export default function AdminSettingsPage() {
                                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="email"
-                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                         value={adminInfo.email}
                                         onChange={(e) => setAdminInfo({ ...adminInfo, email: e.target.value })}
                                     />
@@ -310,7 +310,7 @@ export default function AdminSettingsPage() {
                                     <input
                                         type="password"
                                         placeholder="Nueva contraseña..."
-                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                         value={adminInfo.password}
                                         onChange={(e) => setAdminInfo({ ...adminInfo, password: e.target.value })}
                                     />

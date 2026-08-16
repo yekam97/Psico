@@ -60,7 +60,7 @@ export default function PsychologistPatientsPage() {
                         <input
                             type="text"
                             placeholder="Buscar paciente por nombre o correo..."
-                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

@@ -266,7 +266,7 @@ export default function PsychologistDashboard() {
                                 <textarea
                                     required
                                     autoFocus
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none text-sm"
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none text-sm"
                                     placeholder="Indique el motivo de la cancelación..."
                                     value={cancelReason}
                                     onChange={(e) => setCancelReason(e.target.value)}

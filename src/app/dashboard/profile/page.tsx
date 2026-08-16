@@ -225,7 +225,7 @@ export default function ProfilePage() {
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all text-sm"
+                                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -244,7 +244,7 @@ export default function ProfilePage() {
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         placeholder="Ej. 3001234567"
-                                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all text-sm"
+                                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm"
                                     />
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ export default function ProfilePage() {
                                         <div className="flex gap-4">
                                             <input
                                                 type="text"
-                                                className="flex-1 bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none text-sm transition-all"
+                                                className="flex-1 bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none text-sm transition-all"
                                                 placeholder="https://ejemplo.com/logo.png"
                                                 value={branding.logoUrl}
                                                 onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}

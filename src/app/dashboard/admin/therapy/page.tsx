@@ -127,7 +127,7 @@ export default function AdminTherapyPage() {
                         <input
                             type="text"
                             placeholder="Buscar paciente por nombre o correo..."
-                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -276,7 +276,7 @@ export default function AdminTherapyPage() {
                                             required
                                             type="number"
                                             min="1"
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-2xl font-bold text-center"
+                                            className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-2xl font-bold text-center"
                                             value={adjustData.amount}
                                             onChange={(e) => setAdjustData({ ...adjustData, amount: parseInt(e.target.value) })}
                                         />
@@ -286,7 +286,7 @@ export default function AdminTherapyPage() {
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Concepto / Notas</label>
                                     <textarea
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
                                         placeholder="Ej: Pago de paquete premium"
                                         value={adjustData.notes}
                                         onChange={(e) => setAdjustData({ ...adjustData, notes: e.target.value })}

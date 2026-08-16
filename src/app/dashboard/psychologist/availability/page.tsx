@@ -106,7 +106,7 @@ export default function AvailabilityPage() {
                                             type="time"
                                             value={schedule[day].start}
                                             onChange={(e) => handleTimeChange(day, "start", e.target.value)}
-                                            className="outline-none text-sm font-medium"
+                                            className="outline-none text-sm font-medium text-gray-900"
                                         />
                                     </div>
                                     <span className="text-gray-300">—</span>
@@ -116,7 +116,7 @@ export default function AvailabilityPage() {
                                             type="time"
                                             value={schedule[day].end}
                                             onChange={(e) => handleTimeChange(day, "end", e.target.value)}
-                                            className="outline-none text-sm font-medium"
+                                            className="outline-none text-sm font-medium text-gray-900"
                                         />
                                     </div>
                                 </div>

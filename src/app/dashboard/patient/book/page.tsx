@@ -126,7 +126,7 @@ export default function BookAppointmentPage() {
                             <input
                                 type="text"
                                 placeholder="Buscar por especialidad o nombre..."
-                                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-primary/20"
+                                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-primary/20 text-gray-900"
                             />
                         </div>
 
@@ -194,7 +194,7 @@ export default function BookAppointmentPage() {
                                 min={getMinDate()}
                                 max={getMaxDate()}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="w-full p-4 rounded-2xl border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-primary/20"
+                                className="w-full p-4 rounded-2xl border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-primary/20 text-gray-900"
                             />
                         </div>
 

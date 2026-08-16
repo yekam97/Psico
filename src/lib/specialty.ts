@@ -41,6 +41,27 @@ export const PROFESSIONAL_LABELS: Record<Specialty, string> = {
     GENERAL_SURGERY: "Cirujano",
 };
 
+// Plan module keys. Kept as plain strings (not an enum) since Plan.modules
+// is a free-form Postgres text array — this is just the set the app
+// currently knows how to gate something behind.
+export const PLAN_MODULES = {
+    // Patients/professionals created under this plan get real portal login
+    // accounts. Without it, admin can still create PATIENT/PSYCHOLOGIST
+    // records (for note-taking/organization) but those accounts can't log
+    // in — see User.portalAccess.
+    PORTAL_ACCESS: "PORTAL_ACCESS",
+    // Odontogram clinical module (DENTISTRY/ORTHODONTICS companies only).
+    ODONTOGRAM: "ODONTOGRAM",
+    // Internal chat widget between roles.
+    CHAT: "CHAT",
+} as const;
+
+export const PLAN_MODULE_LABELS: Record<string, string> = {
+    PORTAL_ACCESS: "Acceso al portal (pacientes y profesionales)",
+    ODONTOGRAM: "Odontograma",
+    CHAT: "Chat interno",
+};
+
 export function isDentalSpecialty(specialty?: string | null): boolean {
     return !!specialty && DENTAL_SPECIALTIES.includes(specialty as Specialty);
 }

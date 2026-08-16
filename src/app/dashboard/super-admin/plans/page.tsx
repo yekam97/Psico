@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, X, Loader2, Trash2, Ticket } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { PLAN_MODULE_LABELS } from "@/lib/specialty";
 
 interface PlanRow {
     id: string;
@@ -14,9 +15,7 @@ interface PlanRow {
     _count: { companies: number };
 }
 
-const AVAILABLE_MODULES = [
-    { key: "ODONTOGRAM", label: "Odontograma" },
-];
+const AVAILABLE_MODULES = Object.entries(PLAN_MODULE_LABELS).map(([key, label]) => ({ key, label }));
 
 export default function SuperAdminPlansPage() {
     const [plans, setPlans] = useState<PlanRow[]>([]);
@@ -120,7 +119,7 @@ export default function SuperAdminPlansPage() {
                                 {p.modules.length === 0 ? (
                                     <span className="text-xs text-gray-400 italic">Sin módulos extra</span>
                                 ) : p.modules.map((m) => (
-                                    <span key={m} className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">{m}</span>
+                                    <span key={m} className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">{PLAN_MODULE_LABELS[m] || m}</span>
                                 ))}
                             </div>
                             <p className="text-xs text-gray-400 pt-2 border-t border-gray-50">{p._count.companies} centro(s) usando este plan</p>
@@ -142,18 +141,18 @@ export default function SuperAdminPlansPage() {
                             <div>
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Nombre</label>
                                 <input required type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Máx. Pacientes</label>
                                     <input type="number" min="0" placeholder="Ilimitado" value={form.maxPatients} onChange={(e) => setForm({ ...form, maxPatients: e.target.value })}
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Máx. Profesionales</label>
                                     <input type="number" min="0" placeholder="Ilimitado" value={form.maxProfessionals} onChange={(e) => setForm({ ...form, maxProfessionals: e.target.value })}
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                                 </div>
                             </div>
                             <div>

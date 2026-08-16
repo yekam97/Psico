@@ -24,7 +24,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Users as UsersIcon } from "lucide-react";
 import { toLocalDateInputValue } from "@/lib/date-input";
 import { useBranding } from "@/components/providers/BrandingProvider";
-import { professionalLabel } from "@/lib/specialty";
+import { professionalLabel, hasModule, PLAN_MODULES } from "@/lib/specialty";
 
 interface UserProfile {
     id: string;
@@ -46,6 +46,7 @@ interface User {
     email: string;
     name: string | null;
     role: "ADMIN" | "PSYCHOLOGIST" | "PATIENT";
+    portalAccess: boolean;
     createdAt: string;
     profile: UserProfile | null;
 }
@@ -53,6 +54,8 @@ interface User {
 export default function AdminUsersPage() {
     const { branding } = useBranding();
     const proLabel = professionalLabel(branding.specialty);
+    const hasPortalAccessModule = hasModule(branding.modules, PLAN_MODULES.PORTAL_ACCESS);
+    const roleLabel = (role: User["role"]) => role === "ADMIN" ? "Admin" : role === "PSYCHOLOGIST" ? proLabel : "Paciente";
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -315,7 +318,7 @@ export default function AdminUsersPage() {
                             placeholder="Buscar por nombre o correo..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-primary/20 outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-primary/20 outline-none transition-all"
                         />
                     </div>
                     <div className="flex gap-2">
@@ -364,11 +367,18 @@ export default function AdminUsersPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-primary text-white' :
-                                                    user.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
-                                                    }`}>
-                                                    {user.role}
-                                                </span>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-primary text-white' :
+                                                        user.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
+                                                        }`}>
+                                                        {roleLabel(user.role)}
+                                                    </span>
+                                                    {!user.portalAccess && (
+                                                        <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500" title="Este usuario no puede iniciar sesión (plan sin acceso al portal)">
+                                                            Sin portal
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div className="text-xs text-gray-500 space-y-1">
@@ -457,11 +467,18 @@ export default function AdminUsersPage() {
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-4">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-primary text-white' :
-                                                user.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
-                                                }`}>
-                                                {user.role}
-                                            </span>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-primary text-white' :
+                                                    user.role === 'PSYCHOLOGIST' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
+                                                    }`}>
+                                                    {roleLabel(user.role)}
+                                                </span>
+                                                {!user.portalAccess && (
+                                                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500">
+                                                        Sin portal
+                                                    </span>
+                                                )}
+                                            </div>
                                             {user.profile?.phone && <span className="flex items-center gap-1 text-gray-500 text-xs"><Phone size={12} /> {user.profile.phone}</span>}
                                         </div>
 
@@ -564,7 +581,7 @@ export default function AdminUsersPage() {
                                         <input
                                             required
                                             type="text"
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                            className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         />
@@ -575,7 +592,7 @@ export default function AdminUsersPage() {
                                             <input
                                                 required
                                                 type="email"
-                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             />
@@ -584,29 +601,38 @@ export default function AdminUsersPage() {
                                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Teléfono</label>
                                             <input
                                                 type="text"
-                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             />
                                         </div>
                                     </div>
-                                    {!editingUser && (
+                                    {!editingUser && (formData.role === "ADMIN" || hasPortalAccessModule) && (
                                         <div>
                                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Password</label>
                                             <input
                                                 required={!editingUser}
                                                 type="password"
-                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                                 placeholder="••••••••"
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             />
                                         </div>
                                     )}
+                                    {!editingUser && formData.role !== "ADMIN" && !hasPortalAccessModule && (
+                                        <div className="flex items-start gap-3 p-4 bg-secondary/10 border border-secondary/20 rounded-2xl">
+                                            <ShieldCheck size={18} className="text-secondary-dark shrink-0 mt-0.5" />
+                                            <p className="text-xs text-gray-600">
+                                                Tu plan actual no incluye acceso al portal para {formData.role === "PATIENT" ? "pacientes" : `${proLabel.toLowerCase()}s`}.
+                                                Este registro se creará solo para uso interno (notas, organización); no podrá iniciar sesión.
+                                            </p>
+                                        </div>
+                                    )}
                                     <div>
                                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Rol</label>
                                         <select
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                            className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
                                             value={formData.role}
                                             onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                                         >
@@ -686,7 +712,7 @@ export default function AdminUsersPage() {
                                         required
                                         type="number"
                                         min="1"
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-xl font-bold text-center"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-xl font-bold text-center"
                                         value={therapyData.amount}
                                         onChange={(e) => setTherapyData({ ...therapyData, amount: parseInt(e.target.value) })}
                                     />
@@ -695,7 +721,7 @@ export default function AdminUsersPage() {
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Notas / Concepto</label>
                                     <textarea
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none"
                                         placeholder="Ej: Compra de paquete 10 sesiones"
                                         value={therapyData.notes}
                                         onChange={(e) => setTherapyData({ ...therapyData, notes: e.target.value })}
@@ -734,7 +760,7 @@ export default function AdminUsersPage() {
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Seleccionar {proLabel}</label>
                                     <select
                                         required
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
                                         value={bookingData.psychologistId}
                                         onChange={(e) => setBookingData({ ...bookingData, psychologistId: e.target.value })}
                                     >
@@ -753,7 +779,7 @@ export default function AdminUsersPage() {
                                             type="date"
                                             min={getMinDate()}
                                             max={getMaxDate()}
-                                            className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
+                                            className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all"
                                             value={bookingData.date}
                                             onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
                                         />
@@ -775,7 +801,7 @@ export default function AdminUsersPage() {
                                         ) : (
                                             <select
                                                 required
-                                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
+                                                className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-4 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
                                                 value={bookingData.time}
                                                 onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
                                             >
@@ -808,7 +834,7 @@ export default function AdminUsersPage() {
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Notas Adicionales</label>
                                     <textarea
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[80px] resize-none text-sm"
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[80px] resize-none text-sm"
                                         value={bookingData.notes}
                                         onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
                                     />

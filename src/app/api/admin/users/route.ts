@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { hasModule, PLAN_MODULES } from "@/lib/specialty";
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -56,10 +58,12 @@ export async function POST(req: NextRequest) {
     const { email, password, name, role, psychologistIds, phone } = await req.json();
 
     try {
+        let portalAccess = true;
+
         if (role === "PATIENT" || role === "PSYCHOLOGIST") {
             const company = await prisma.company.findUnique({
                 where: { id: companyId },
-                select: { plan: { select: { maxPatients: true, maxProfessionals: true } } }
+                select: { plan: { select: { maxPatients: true, maxProfessionals: true, modules: true } } }
             });
 
             const limit = role === "PATIENT" ? company?.plan?.maxPatients : company?.plan?.maxProfessionals;
@@ -72,9 +76,22 @@ export async function POST(req: NextRequest) {
                     }, { status: 400 });
                 }
             }
+
+            // Plans without PORTAL_ACCESS create the record (for note-taking/
+            // organization) but it can never log in — see User.portalAccess
+            // and src/lib/auth-options.ts. The password is meaningless in
+            // that case, so a random one replaces whatever was submitted
+            // instead of requiring the admin to invent one for an account
+            // that will never use it.
+            portalAccess = hasModule(company?.plan?.modules ?? null, PLAN_MODULES.PORTAL_ACCESS);
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const effectivePassword = portalAccess ? password : crypto.randomBytes(24).toString("hex");
+        if (portalAccess && !password) {
+            return NextResponse.json({ error: "La contraseña es requerida" }, { status: 400 });
+        }
+
+        const hashedPassword = await bcrypt.hash(effectivePassword, 10);
 
         // Create User and Profile in a transaction
         const newUser = await prisma.$transaction(async (tx) => {
@@ -84,6 +101,7 @@ export async function POST(req: NextRequest) {
                     password: hashedPassword,
                     name,
                     role: role as Role,
+                    portalAccess,
                     companyId,
                     profile: {
                         create: {

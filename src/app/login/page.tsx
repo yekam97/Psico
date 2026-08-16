@@ -27,7 +27,9 @@ export default function LoginPage() {
                 redirect: false,
             });
 
-            if (res?.error) {
+            if (res?.error === "NO_PORTAL_ACCESS") {
+                setError("Esta cuenta no tiene acceso al portal. Contacta a tu centro de salud para más información.");
+            } else if (res?.error) {
                 setError("Credenciales inválidas. Por favor intente de nuevo.");
             } else {
                 router.push("/dashboard");

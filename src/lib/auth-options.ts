@@ -27,6 +27,13 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (user && await compare(credentials.password, user.password)) {
+                        if (!(user as any).portalAccess) {
+                            // Distinguish this from a generic bad-credentials error so
+                            // the login page can explain *why* (plan doesn't include
+                            // portal access for this account) instead of implying a
+                            // typo'd password.
+                            throw new Error("NO_PORTAL_ACCESS");
+                        }
                         return {
                             id: user.id,
                             email: user.email,
@@ -38,6 +45,9 @@ export const authOptions: NextAuthOptions = {
                         };
                     }
                 } catch (e) {
+                    if (e instanceof Error && e.message === "NO_PORTAL_ACCESS") {
+                        throw e;
+                    }
                     console.error("Auth error:", e);
                 }
 

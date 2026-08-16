@@ -9,9 +9,12 @@ async function seedPlatformDefaults() {
     console.log("Seeding platform-level defaults (plans, super admin)...");
 
     const plans = [
+        // No PORTAL_ACCESS: admin can still create patient/professional
+        // records for note-taking, but those accounts can't log in
+        // (User.portalAccess is forced false — see /api/admin/users).
         { name: "Básico", maxPatients: 50, maxProfessionals: 3, modules: [] as string[] },
-        { name: "Profesional", maxPatients: 300, maxProfessionals: 15, modules: ["ODONTOGRAM"] },
-        { name: "Ilimitado", maxPatients: null, maxProfessionals: null, modules: ["ODONTOGRAM"] },
+        { name: "Intermedio", maxPatients: 300, maxProfessionals: 15, modules: ["PORTAL_ACCESS"] },
+        { name: "Pro", maxPatients: null, maxProfessionals: null, modules: ["PORTAL_ACCESS", "ODONTOGRAM", "CHAT"] },
     ];
     for (const plan of plans) {
         await prisma.plan.upsert({

@@ -178,17 +178,17 @@ export default function SuperAdminCompaniesPage() {
                             <div>
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Nombre del Centro</label>
                                 <input required type="text" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Dominio (único)</label>
                                 <input required type="text" placeholder="ej. sonrisas.healthsaas.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })}
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Especialidad</label>
                                 <select required value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm">
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm">
                                     {SPECIALTIES.map((s) => (
                                         <option key={s} value={s}>{SPECIALTY_LABELS[s]}</option>
                                     ))}
@@ -197,7 +197,7 @@ export default function SuperAdminCompaniesPage() {
                             <div>
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Plan</label>
                                 <select value={form.planId} onChange={(e) => setForm({ ...form, planId: e.target.value })}
-                                    className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm">
+                                    className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm">
                                     <option value="">Sin plan (ilimitado)</option>
                                     {plans.map((p) => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
@@ -210,17 +210,17 @@ export default function SuperAdminCompaniesPage() {
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Nombre</label>
                                     <input required type="text" value={form.adminName} onChange={(e) => setForm({ ...form, adminName: e.target.value })}
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Correo</label>
                                     <input required type="email" value={form.adminEmail} onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Contraseña</label>
                                     <input required type="password" value={form.adminPassword} onChange={(e) => setForm({ ...form, adminPassword: e.target.value })}
-                                        className="w-full bg-gray-50 border border-transparent rounded-2xl px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
+                                        className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-5 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all text-sm" />
                                 </div>
                             </div>
 

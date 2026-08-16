@@ -21,7 +21,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useBranding } from "@/components/providers/BrandingProvider";
 import ChatWidget from "@/components/chat/ChatWidget";
-import { specialtyLabel, professionalLabel } from "@/lib/specialty";
+import { specialtyLabel, professionalLabel, hasModule, PLAN_MODULES } from "@/lib/specialty";
 
 interface SidebarItemProps {
     href: string;
@@ -93,6 +93,7 @@ export default function DashboardLayout({
     };
 
     const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const hasChatModule = hasModule(branding.modules, PLAN_MODULES.CHAT);
     const sidebarSubtitle = isSuperAdmin ? "Panel de Plataforma" : `Centro de ${specialtyLabel(branding.specialty)}`;
 
     const currentMenu = menuItems[userRole as keyof typeof menuItems] || [];
@@ -199,7 +200,7 @@ export default function DashboardLayout({
                     {children}
                 </div>
             </main>
-            {!isSuperAdmin && <ChatWidget />}
+            {!isSuperAdmin && hasChatModule && <ChatWidget />}
         </div>
     );
 }

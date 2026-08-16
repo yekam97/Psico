@@ -53,6 +53,13 @@ model User {
   role             Role      @default(PATIENT)
   name             String?
   avatarUrl        String?
+  // Whether this account can log into the portal at all. Plans without the
+  // "PORTAL_ACCESS" module create PATIENT/PSYCHOLOGIST records with this set
+  // to false — the record still exists for admin-side note-taking, it just
+  // can't authenticate (see src/lib/auth-options.ts). ADMIN/SUPER_ADMIN are
+  // always true regardless of plan; they must be able to log in to manage
+  // anything.
+  portalAccess     Boolean   @default(true)
   companyId        String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

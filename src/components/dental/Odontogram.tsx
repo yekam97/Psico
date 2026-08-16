@@ -125,7 +125,7 @@ export default function Odontogram({ records, onAddRecord }: OdontogramProps) {
                             <textarea
                                 autoFocus
                                 required
-                                className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none text-sm"
+                                className="w-full bg-gray-50 border border-transparent rounded-2xl text-gray-900 px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none text-sm"
                                 placeholder="Ej: Resina compuesta, cara oclusal..."
                                 value={procedure}
                                 onChange={(e) => setProcedure(e.target.value)}
