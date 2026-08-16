@@ -8,12 +8,16 @@ const prisma = new PrismaClient();
 async function seedPlatformDefaults() {
     console.log("Seeding platform-level defaults (plans, super admin)...");
 
+    // ODONTOGRAM/OPTOMETRY_RECORD are on every tier — the specialty's core
+    // clinical tool isn't a paywalled differentiator, it's table stakes for
+    // a dental/optometry center to function at all. PORTAL_ACCESS (patient/
+    // professional login) and CHAT are what actually differentiate tiers.
     const plans = [
         // No PORTAL_ACCESS: admin can still create patient/professional
         // records for note-taking, but those accounts can't log in
         // (User.portalAccess is forced false — see /api/admin/users).
-        { name: "Básico", maxPatients: 50, maxProfessionals: 3, modules: [] as string[] },
-        { name: "Intermedio", maxPatients: 300, maxProfessionals: 15, modules: ["PORTAL_ACCESS"] },
+        { name: "Básico", maxPatients: 50, maxProfessionals: 3, modules: ["ODONTOGRAM", "OPTOMETRY_RECORD"] },
+        { name: "Intermedio", maxPatients: 300, maxProfessionals: 15, modules: ["PORTAL_ACCESS", "ODONTOGRAM", "OPTOMETRY_RECORD"] },
         { name: "Pro", maxPatients: null, maxProfessionals: null, modules: ["PORTAL_ACCESS", "ODONTOGRAM", "OPTOMETRY_RECORD", "CHAT"] },
     ];
     for (const plan of plans) {

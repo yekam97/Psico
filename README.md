@@ -109,9 +109,11 @@ Planes de ejemplo ya seedeados (`prisma/seed.ts` → `seedPlatformDefaults()`), 
 
 | Plan | maxPatients | maxProfessionals | Módulos |
 | --- | --- | --- | --- |
-| Básico | 50 | 3 | *(ninguno — sin acceso al portal)* |
-| Intermedio | 300 | 15 | `PORTAL_ACCESS` |
+| Básico | 50 | 3 | `ODONTOGRAM`, `OPTOMETRY_RECORD` *(sin acceso al portal)* |
+| Intermedio | 300 | 15 | `PORTAL_ACCESS`, `ODONTOGRAM`, `OPTOMETRY_RECORD` |
 | Pro | sin límite | sin límite | `PORTAL_ACCESS`, `ODONTOGRAM`, `OPTOMETRY_RECORD`, `CHAT` |
+
+`ODONTOGRAM`/`OPTOMETRY_RECORD` están en los tres niveles a propósito: la herramienta clínica propia de la especialidad no es un diferenciador de plan, es lo mínimo para que un centro dental/de optometría funcione. Lo que sí diferencia los niveles es `PORTAL_ACCESS` (login real para pacientes/profesionales) y `CHAT`.
 
 ⚠️ **Correo/WhatsApp no están en esta lista a propósito:** no existe ninguna integración de email ni WhatsApp en el proyecto (ver sección de notificaciones más abajo) — agregar esos nombres como "módulos" del plan Pro sin que hicieran nada habría sido exactamente el mismo tipo de bug que ya se corrigió varias veces en este README (toggles decorativos que no hacen nada). Cuando se implementen de verdad, agregarlos ahí.
 
