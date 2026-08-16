@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { isDentalSpecialty } from "@/lib/specialty";
+import Odontogram, { ToothRecordEntry } from "@/components/dental/Odontogram";
 
 interface PatientDetailProps {
     params: Promise<{ id: string }>;
@@ -26,7 +29,10 @@ interface PatientDetailProps {
 
 export default function PatientDetailPage({ params }: PatientDetailProps) {
     const { id } = use(params);
+    const { branding } = useBranding();
+    const isDental = isDentalSpecialty(branding.specialty);
     const [notes, setNotes] = useState<any[]>([]);
+    const [toothRecords, setToothRecords] = useState<ToothRecordEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [newNote, setNewNote] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -37,7 +43,7 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
 
     useEffect(() => {
         fetchInitialData();
-    }, [id]);
+    }, [id, isDental]);
 
     const fetchInitialData = async () => {
         setLoading(true);
@@ -46,13 +52,28 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
             const patientsRes = await axios.get("/api/psychologist/patients");
             setPatients(patientsRes.data);
 
-            // Fetch notes
-            const notesRes = await axios.get(`/api/psychologist/notes/${id}`);
-            setNotes(notesRes.data);
+            if (isDental) {
+                const toothRes = await axios.get(`/api/professional/tooth-records/${id}`);
+                setToothRecords(toothRes.data);
+            } else {
+                const notesRes = await axios.get(`/api/psychologist/notes/${id}`);
+                setNotes(notesRes.data);
+            }
         } catch (error) {
             console.error("Error fetching patient detail:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAddToothRecord = async (toothNumber: number, procedure: string) => {
+        try {
+            await axios.post(`/api/professional/tooth-records/${id}`, { toothNumber, procedure });
+            const toothRes = await axios.get(`/api/professional/tooth-records/${id}`);
+            setToothRecords(toothRes.data);
+            toast.success("Procedimiento registrado");
+        } catch (error) {
+            toast.error("Error al guardar el procedimiento");
         }
     };
 
@@ -139,74 +160,81 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                     </div>
                 </div>
 
-                {/* Clinical Notes Section */}
+                {/* Clinical Documentation Section — odontogram for dental/orthodontic
+                    centers, free-text notes for everyone else */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-                            <StickyNote size={24} />
-                        </div>
-                        <h3 className="text-2xl font-light text-gray-800 dark:text-gray-100">Historial de Notas Clínicas</h3>
-                    </div>
-
-                    {/* New Note Form */}
-                    <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm">
-                        <form onSubmit={handleAddNote} className="space-y-4">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nueva Nota de Seguimiento</label>
-                            <textarea
-                                required
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                                placeholder="Escribe aquí los detalles del progreso de la sesión..."
-                                className="w-full bg-gray-50 dark:bg-[#2a2a2a] dark:text-white border border-transparent rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-[#333] focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none"
-                            />
-                            <div className="flex justify-end">
-                                <button
-                                    disabled={submitting}
-                                    className="bg-primary text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
-                                >
-                                    {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                                    Guardar Nota
-                                </button>
+                    {isDental ? (
+                        <Odontogram records={toothRecords} onAddRecord={handleAddToothRecord} />
+                    ) : (
+                        <>
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                                    <StickyNote size={24} />
+                                </div>
+                                <h3 className="text-2xl font-light text-gray-800 dark:text-gray-100">Historial de Notas Clínicas</h3>
                             </div>
-                        </form>
-                    </div>
 
-                    {/* Notes List */}
-                    <div className="space-y-4">
-                        {notes.length === 0 ? (
-                            <div className="p-12 text-center text-gray-400 italic">
-                                No hay notas registradas para este paciente.
-                            </div>
-                        ) : (
-                            notes.map((note) => (
-                                <div key={note.id} className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group hover:border-primary/20 transition-all">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary">
-                                                <History size={14} />
-                                            </div>
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                                {format(new Date(note.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
-                                            </span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase">
-                                            {note.psychologist.user.name}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{note.content}</p>
-                                    <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {/* New Note Form */}
+                            <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                                <form onSubmit={handleAddNote} className="space-y-4">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nueva Nota de Seguimiento</label>
+                                    <textarea
+                                        required
+                                        value={newNote}
+                                        onChange={(e) => setNewNote(e.target.value)}
+                                        placeholder="Escribe aquí los detalles del progreso de la sesión..."
+                                        className="w-full bg-gray-50 dark:bg-[#2a2a2a] dark:text-white border border-transparent rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-[#333] focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none"
+                                    />
+                                    <div className="flex justify-end">
                                         <button
-                                            onClick={() => handleDeleteNote(note.id)}
-                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
-                                            title="Eliminar nota"
+                                            disabled={submitting}
+                                            className="bg-primary text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                                         >
-                                            <Trash2 size={16} />
+                                            {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                                            Guardar Nota
                                         </button>
                                     </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                                </form>
+                            </div>
+
+                            {/* Notes List */}
+                            <div className="space-y-4">
+                                {notes.length === 0 ? (
+                                    <div className="p-12 text-center text-gray-400 italic">
+                                        No hay notas registradas para este paciente.
+                                    </div>
+                                ) : (
+                                    notes.map((note) => (
+                                        <div key={note.id} className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group hover:border-primary/20 transition-all">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary">
+                                                        <History size={14} />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                                        {format(new Date(note.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase">
+                                                    {note.psychologist.user.name}
+                                                </span>
+                                            </div>
+                                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                                            <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleDeleteNote(note.id)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                                    title="Eliminar nota"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

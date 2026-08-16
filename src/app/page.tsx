@@ -33,13 +33,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
           <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
             <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">
-              Software para Psicólogos
+              Software para Centros de Salud
             </div>
             <h1 className="text-5xl md:text-7xl font-light leading-tight text-gray-900">
               Gestiona tu centro con <span className="italic font-normal text-primary">inteligencia</span>.
             </h1>
             <p className="text-xl text-gray-600 max-w-xl leading-relaxed">
-              HealthSaaS es el ecosistema digital diseñado para simplificar la administración de centros de psicología. Citas, historias clínicas y telemedicina en un solo lugar.
+              HealthSaaS es el ecosistema digital diseñado para simplificar la administración de centros de salud — psicología, odontología, ortodoncia y otras especialidades. Citas, historias clínicas y telemedicina en un solo lugar.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link href="/login" className="bg-primary text-white px-10 py-5 rounded-2xl text-lg font-bold shadow-xl hover:translate-y-[-2px] hover:shadow-2xl transition-all text-center">

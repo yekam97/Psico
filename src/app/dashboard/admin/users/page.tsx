@@ -500,7 +500,7 @@ export default function AdminUsersPage() {
             {
                 isHistoryModalOpen && editingUser && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] flex items-center justify-end">
-                        <div className="bg-white w-full max-w-md h-full shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
+                        <div className="bg-white w-full min-w-0 max-w-md h-full shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">Historial de Terapias</h3>
@@ -544,7 +544,7 @@ export default function AdminUsersPage() {
             {
                 isModalOpen && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="bg-white rounded-[3rem] w-full min-w-0 max-w-lg overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                                 <h3 className="text-xl font-bold text-gray-800">
                                     {editingUser ? "Editar Usuario" : "Crear Nuevo Usuario"}
@@ -660,7 +660,7 @@ export default function AdminUsersPage() {
             {
                 isTherapyModalOpen && editingUser && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="bg-white rounded-[3rem] w-full min-w-0 max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-secondary/5">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">Gestionar Terapias</h3>
@@ -715,7 +715,7 @@ export default function AdminUsersPage() {
             {
                 isBookingModalOpen && editingUser && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="bg-white rounded-[3rem] w-full min-w-0 max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-green-50/30">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">Agendar Cita Directa</h3>

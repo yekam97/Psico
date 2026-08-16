@@ -253,7 +253,7 @@ export default function AdminTherapyPage() {
             {
                 isAdjustModalOpen && selectedPatient && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div className="bg-white rounded-[3rem] w-full min-w-0 max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-secondary/5">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">Recarga de Sesiones</h3>

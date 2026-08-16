@@ -5,12 +5,52 @@ import path from "path";
 
 const prisma = new PrismaClient();
 
+async function seedPlatformDefaults() {
+    console.log("Seeding platform-level defaults (plans, super admin)...");
+
+    const plans = [
+        { name: "Básico", maxPatients: 50, maxProfessionals: 3, modules: [] as string[] },
+        { name: "Profesional", maxPatients: 300, maxProfessionals: 15, modules: ["ODONTOGRAM"] },
+        { name: "Ilimitado", maxPatients: null, maxProfessionals: null, modules: ["ODONTOGRAM"] },
+    ];
+    for (const plan of plans) {
+        await prisma.plan.upsert({
+            where: { name: plan.name },
+            update: {},
+            create: plan
+        });
+    }
+
+    // SUPER_ADMIN isn't scoped to any company, but the schema requires a
+    // companyId on User — attach it to whichever company happens to exist
+    // first as a harmless placeholder. The app must never use a
+    // SUPER_ADMIN's companyId for data scoping (see src/app/api/branding).
+    const anyCompany = await prisma.company.findFirst();
+    if (anyCompany) {
+        const existingSuperAdmin = await prisma.user.findUnique({ where: { email: "super@minerva.com" } });
+        if (!existingSuperAdmin) {
+            const hashed = await bcrypt.hash("super123", 10);
+            await prisma.user.create({
+                data: {
+                    email: "super@minerva.com",
+                    password: hashed,
+                    role: "SUPER_ADMIN",
+                    name: "Super Admin",
+                    companyId: anyCompany.id
+                }
+            });
+            console.log("  Created super admin: super@minerva.com / super123 (change this in production)");
+        }
+    }
+}
+
 async function main() {
     console.log("Starting seed...");
 
     const tenantsPath = path.join(__dirname, "tenants.json");
     if (!fs.existsSync(tenantsPath)) {
-        console.error("tenants.json not found. Skipping seed.");
+        console.error("tenants.json not found. Skipping tenant seed.");
+        await seedPlatformDefaults();
         return;
     }
 
@@ -103,6 +143,8 @@ async function main() {
             }
         }
     }
+
+    await seedPlatformDefaults();
 
     console.log("Seed completed successfully.");
 }

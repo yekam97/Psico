@@ -21,6 +21,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useBranding } from "@/components/providers/BrandingProvider";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { specialtyLabel, professionalLabel } from "@/lib/specialty";
 
 interface SidebarItemProps {
     href: string;
@@ -68,6 +69,10 @@ export default function DashboardLayout({
     ];
 
     const menuItems = {
+        SUPER_ADMIN: [
+            { href: "/dashboard/super-admin", icon: LayoutDashboard, label: "Centros" },
+            { href: "/dashboard/super-admin/plans", icon: Settings, label: "Planes" },
+        ],
         ADMIN: [
             { href: "/dashboard/admin", icon: LayoutDashboard, label: "Vista General" },
             { href: "/dashboard/admin/users", icon: Users, label: "Gestionar Usuarios" },
@@ -86,6 +91,9 @@ export default function DashboardLayout({
             { href: "/dashboard/profile", icon: Settings, label: "Mi Perfil" },
         ],
     };
+
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const sidebarSubtitle = isSuperAdmin ? "Panel de Plataforma" : `Centro de ${specialtyLabel(branding.specialty)}`;
 
     const currentMenu = menuItems[userRole as keyof typeof menuItems] || [];
 
@@ -117,10 +125,10 @@ export default function DashboardLayout({
             `}>
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <Logo
-                        brandName={branding.name}
-                        brandSubtitle="Centro de Psicología"
+                        brandName={isSuperAdmin ? "HealthSaaS" : branding.name}
+                        brandSubtitle={sidebarSubtitle}
                         variant="imagotipo"
-                        logoUrl={branding.logoUrl ?? undefined}
+                        logoUrl={isSuperAdmin ? undefined : (branding.logoUrl ?? undefined)}
                     />
                     <button
                         className="md:hidden p-2 text-gray-400 hover:text-primary"
@@ -150,7 +158,7 @@ export default function DashboardLayout({
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-sm font-semibold text-gray-800 truncate">{session?.user?.name || "Usuario"}</p>
-                            <p className="text-xs text-gray-400 truncate capitalize">{userRole?.toLowerCase()}</p>
+                            <p className="text-xs text-gray-400 truncate capitalize">{userRole?.toLowerCase().replace("_", " ")}</p>
                         </div>
                     </div>
                     <button
@@ -174,8 +182,9 @@ export default function DashboardLayout({
                             <Menu size={24} />
                         </button>
                         <h1 className="text-lg md:text-xl font-light text-gray-800 truncate">
-                            {pathname.includes("admin") ? "Panel Administrativo" :
-                                pathname.includes("psychologist") ? "Panel de Psicólogo" : "Portal de Paciente"}
+                            {pathname.includes("super-admin") ? "Panel de Plataforma" :
+                                pathname.includes("/admin") ? "Panel Administrativo" :
+                                    pathname.includes("psychologist") ? `Panel de ${professionalLabel(branding.specialty)}` : "Portal de Paciente"}
                         </h1>
                     </div>
                     <div className="hidden sm:block text-sm text-gray-400 font-mono">
@@ -186,7 +195,7 @@ export default function DashboardLayout({
                     {children}
                 </div>
             </main>
-            <ChatWidget />
+            {!isSuperAdmin && <ChatWidget />}
         </div>
     );
 }

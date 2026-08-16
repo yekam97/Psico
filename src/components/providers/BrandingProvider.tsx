@@ -10,6 +10,7 @@ export interface BrandingConfig {
     primaryColor: string;
     secondaryColor: string;
     tertiaryColor: string;
+    specialty: string | null;
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
@@ -17,7 +18,8 @@ const DEFAULT_BRANDING: BrandingConfig = {
     logoUrl: null,
     primaryColor: "#24343B",
     secondaryColor: "#EBA554",
-    tertiaryColor: "#948472"
+    tertiaryColor: "#948472",
+    specialty: null
 };
 
 const BrandingContext = createContext<{
@@ -41,7 +43,8 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
                 logoUrl: data.logoUrl || null,
                 primaryColor: data.primaryColor || DEFAULT_BRANDING.primaryColor,
                 secondaryColor: data.secondaryColor || DEFAULT_BRANDING.secondaryColor,
-                tertiaryColor: data.tertiaryColor || DEFAULT_BRANDING.tertiaryColor
+                tertiaryColor: data.tertiaryColor || DEFAULT_BRANDING.tertiaryColor,
+                specialty: data.specialty || null
             });
         } catch (e) {
             console.warn("Could not fetch company branding, using defaults.", e);

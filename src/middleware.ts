@@ -15,6 +15,10 @@ export default withAuth(
         const role = token?.role as string;
 
         // Role-based protection
+        if (pathname.startsWith("/dashboard/super-admin") && role !== "SUPER_ADMIN") {
+            return NextResponse.redirect(new URL("/dashboard", req.url));
+        }
+
         if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
             return NextResponse.redirect(new URL("/dashboard", req.url));
         }
@@ -29,6 +33,7 @@ export default withAuth(
 
         // Default redirect for /dashboard to specific role dashboard
         if (pathname === "/dashboard") {
+            if (role === "SUPER_ADMIN") return NextResponse.redirect(new URL("/dashboard/super-admin", req.url));
             if (role === "ADMIN") return NextResponse.redirect(new URL("/dashboard/admin", req.url));
             if (role === "PSYCHOLOGIST") return NextResponse.redirect(new URL("/dashboard/psychologist", req.url));
             if (role === "PATIENT") return NextResponse.redirect(new URL("/dashboard/patient", req.url));

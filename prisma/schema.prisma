@@ -19,12 +19,31 @@ model Company {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   physicalRooms   Int            @default(1)
+  specialty       Specialty      @default(PSYCHOLOGY)
+  planId          String?
   appointments    Appointment[]
   availabilities  Availability[]
   clinicalNotes   ClinicalNote[]
   messages        Message[]
   users           User[]
   waitlistEntries Waitlist[]
+  toothRecords    ToothRecord[]
+  plan            Plan?          @relation(fields: [planId], references: [id])
+}
+
+// A subscription tier assigned by the Super Admin to a Company. Limits are
+// nullable = unlimited. `modules` gates specialty-specific features (e.g.
+// "ODONTOGRAM") independently of specialty, so a plan can offer/withhold a
+// feature without it being strictly tied to what the company's specialty is.
+model Plan {
+  id                String    @id @default(cuid())
+  name              String    @unique
+  maxPatients       Int?
+  maxProfessionals  Int?
+  modules           String[]  @default([])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  companies         Company[]
 }
 
 model User {
@@ -60,6 +79,8 @@ model Profile {
   user                  User                  @relation(fields: [userId], references: [id])
   therapyInventory      TherapyInventory?
   waitlistEntries       Waitlist[]
+  patientToothRecords   ToothRecord[]         @relation("PatientToothRecords")
+  doctorToothRecords    ToothRecord[]         @relation("DoctorToothRecords")
 }
 
 model PatientPsychologist {
@@ -91,6 +112,7 @@ model Appointment {
   company            Company           @relation(fields: [companyId], references: [id])
   patient            Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
   psychologist       Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
+  toothRecords       ToothRecord[]
 }
 
 model TherapyInventory {
@@ -139,6 +161,27 @@ model ClinicalNote {
   psychologist   Profile  @relation("DoctorNotes", fields: [psychologistId], references: [id])
 }
 
+// One entry per tooth annotated during a session — the "odontograma" for
+// dental/orthodontic companies. Deliberately simple for v1: a tooth number
+// (FDI notation, 11-18/21-28/31-38/41-48) plus free-text procedure, optionally
+// linked to the appointment it was recorded during. Companies whose specialty
+// isn't DENTISTRY/ORTHODONTICS never see this model's UI, but nothing here is
+// specialty-locked at the data layer.
+model ToothRecord {
+  id            String       @id @default(cuid())
+  companyId     String
+  patientId     String
+  doctorId      String
+  toothNumber   Int
+  procedure     String
+  appointmentId String?
+  createdAt     DateTime     @default(now())
+  company       Company      @relation(fields: [companyId], references: [id])
+  patient       Profile      @relation("PatientToothRecords", fields: [patientId], references: [id])
+  doctor        Profile      @relation("DoctorToothRecords", fields: [doctorId], references: [id])
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+}
+
 model Waitlist {
   id             String    @id @default(cuid())
   companyId      String
@@ -172,9 +215,26 @@ model Message {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   PSYCHOLOGIST
   PATIENT
+}
+
+// The company's line of practice. Only PSYCHOLOGY and DENTISTRY/ORTHODONTICS
+// currently drive different clinical-documentation UI (notes vs. odontogram);
+// the rest use the generic clinical notes and exist so the Super Admin can
+// categorize/report on centers by specialty today, with room to give any of
+// them a dedicated module later without a schema change.
+enum Specialty {
+  PSYCHOLOGY
+  DENTISTRY
+  ORTHODONTICS
+  INTERNAL_MEDICINE
+  PEDIATRICS
+  ANESTHESIOLOGY
+  GYNECOLOGY_OBSTETRICS
+  GENERAL_SURGERY
 }
 
 enum AppointmentStatus {

@@ -56,6 +56,24 @@ export async function POST(req: NextRequest) {
     const { email, password, name, role, psychologistIds, phone } = await req.json();
 
     try {
+        if (role === "PATIENT" || role === "PSYCHOLOGIST") {
+            const company = await prisma.company.findUnique({
+                where: { id: companyId },
+                select: { plan: { select: { maxPatients: true, maxProfessionals: true } } }
+            });
+
+            const limit = role === "PATIENT" ? company?.plan?.maxPatients : company?.plan?.maxProfessionals;
+            if (typeof limit === "number") {
+                const currentCount = await prisma.user.count({ where: { companyId, role: role as Role } });
+                if (currentCount >= limit) {
+                    const noun = role === "PATIENT" ? "pacientes" : "profesionales";
+                    return NextResponse.json({
+                        error: `Tu plan permite un máximo de ${limit} ${noun}. Actualiza tu plan para agregar más.`
+                    }, { status: 400 });
+                }
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create User and Profile in a transaction

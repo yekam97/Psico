@@ -1,4 +1,4 @@
-# Minerva — SaaS de gestión para centros de psicología
+# Minerva — SaaS de gestión para centros de salud (multi-especialidad)
 
 **Stack:** Next.js 16 · Vercel (serverless functions) · Neon (PostgreSQL) · Prisma ORM · NextAuth JWT
 
@@ -63,6 +63,27 @@ GOOGLE_IMPERSONATE_EMAIL=       # (Opcional) Email a impersonar para Domain-Wide
 3. Configurar `GOOGLE_IMPERSONATE_EMAIL` con un usuario del dominio
 
 Sin Domain-Wide Delegation, los eventos se crean correctamente pero sin conferencia de Meet.
+
+---
+
+## Multi-especialidad, Planes y Super Admin
+
+La plataforma dejó de ser solo para psicología. Hay un nivel por encima de `ADMIN` (que sigue existiendo, scoped a un solo centro):
+
+| Rol | Alcance |
+| --- | --- |
+| `SUPER_ADMIN` | Toda la plataforma. Crea centros (`Company`) y su primer `ADMIN`, asigna/edita planes. No pertenece a ningún centro — su `companyId` es solo un placeholder técnico requerido por el schema; nunca se usa para filtrar datos (ver `src/app/api/branding/route.ts`). |
+| `ADMIN` | Como antes: un solo centro (`Company`). |
+| `PSYCHOLOGIST` | Como antes — es el rol genérico de "profesional que atiende pacientes", sin importar la especialidad del centro. **No se renombró** a algo como `PROFESSIONAL`: las rutas `/dashboard/psychologist/**` y `/api/psychologist/**` siguen llamándose así internamente mientras sirven a cualquier especialidad, para evitar un refactor masivo de nombres sobre una app ya probada. La UI sí muestra la etiqueta correcta ("Panel de Odontólogo", etc.) vía `src/lib/specialty.ts`. |
+| `PATIENT` | Como antes. |
+
+**Especialidad por centro** (`Company.specialty`, enum `Specialty` en el schema): `PSYCHOLOGY`, `DENTISTRY`, `ORTHODONTICS`, `INTERNAL_MEDICINE`, `PEDIATRICS`, `ANESTHESIOLOGY`, `GYNECOLOGY_OBSTETRICS`, `GENERAL_SURGERY`. Solo `DENTISTRY`/`ORTHODONTICS` cambian la documentación clínica (odontograma en vez de notas de texto); el resto usa notas de texto genéricas — agregar un módulo clínico propio para otra especialidad no requiere cambio de schema, solo una condición más en `src/app/dashboard/psychologist/patients/[id]/page.tsx` (ver `isDentalSpecialty` en `src/lib/specialty.ts`).
+
+**Planes** (`Plan` model): cada `Company` tiene un `planId` opcional (`null` = ilimitado, útil para no romper centros existentes al agregar el sistema de planes). Un plan define `maxPatients`, `maxProfessionals` (`null` = sin límite) y `modules` (array de strings, hoy solo `"ODONTOGRAM"` existe, gestionable desde `/dashboard/super-admin/plans`). El límite de pacientes/profesionales se aplica en `POST /api/admin/users`.
+
+**Odontograma** (v1, deliberadamente simple — no numeración FDI clínica completa, sin superficies ni códigos de tratamiento): 32 dientes clickeables (`src/components/dental/Odontogram.tsx`), cada click abre un campo de texto libre para anotar el procedimiento de esa sesión (`ToothRecord` model, `/api/professional/tooth-records/[patientId]`). Mismo patrón de autorización que las notas clínicas (verifica que el paciente esté asignado al profesional).
+
+**Bootstrap del Super Admin:** no hay formulario público de registro (por seguridad). Se crea con `npx prisma db seed` (ver `seedPlatformDefaults()` en `prisma/seed.ts`) — por defecto `super@minerva.com` / `super123`. Cámbialo antes de producción.
 
 ---
 
@@ -136,13 +157,16 @@ Sin Domain-Wide Delegation, los eventos se crean correctamente pero sin conferen
 - [ ] **Tip de bienestar** — contenido dinámico para vista del psicólogo
 - [ ] **Notificación de sesiones por vencer** — alerta cuando quedan pocas sesiones pagadas
 - [x] **Descarga de reportes** — exportar reporte semanal en CSV (opcional)
-- [ ] **Responsive mobile** — ajuste de vistas para pantallas pequeñas
+- [x] ~~**Responsive mobile**~~ — resultó estar mayormente ya implementado de una sesión anterior (drawer de sidebar, tarjetas en vez de tabla en mobile, grids que colapsan) — no marcado en este README. El único bug real encontrado: todos los modales (crear usuario, agendar cita, terapias, historial) se desbordaban del viewport en mobile por el problema clásico de flexbox `min-width: auto` en sus contenedores `w-full max-w-*`; se agregó `min-w-0` a los 6 modales (`src/app/dashboard/admin/users/page.tsx`, `admin/therapy/page.tsx`, `psychologist/page.tsx`).
 - [ ] **Reformular lista de espera como citas prioritarias del día:** La lista de espera debe corresponderse a citas prioritarias que se agendan en el mismo día.
 - [ ] **Cita prioritaria desde el paciente:** El paciente puede marcar una cita como prioritaria al agendarla; se agenda en cualquier espacio pero entra en la lista de espera del psicólogo para ser confirmada o rechazada. Debe llegar una notificación y un badge al psicólogo indicando que tiene algo en lista de espera.
 - [x] **Modal de razón de cancelación:** El popup actual de razón de cancelación debería ser un modal consistente con el de crear cita.
 - [x] **Notificación al paciente cuando el psicólogo cancela:** Notificar con un mensaje al paciente cuando el psicólogo cancela una cita.
 - [x] **Ventana de agendamiento con antelación máxima:** Se deben poder agendar citas en distintas fechas con un máximo de 2 meses de antelación para pacientes y 3 meses para el admin. (Implementado: paciente máximo 2 meses, admin máximo 3 meses, mínimo 1 hora de antelación)
-- [ ] **Notificaciones por email/WhatsApp de citas próximas:** Agregar envío de notificaciones por email o WhatsApp al celular dependiendo de las citas próximas.
+- [ ] **Notificaciones por email de citas próximas:** Decidido: se usará Resend. Pendiente que se cree la cuenta en resend.com, se verifique un dominio de envío, y se agregue `RESEND_API_KEY` al `.env` para poder implementarlo.
+- [ ] **Notificaciones por WhatsApp:** Fuera de alcance por decisión explícita — el API oficial de Meta requiere verificación de negocio (semanas de aprobación), no es algo resoluble en una sesión de desarrollo. Retomar cuando haya una cuenta de WhatsApp Business API (vía Twilio u otro BSP) ya aprobada.
+- [ ] **Terminología "psicólogo/terapia" hardcodeada en el resto de la app:** Al agregar multi-especialidad solo se adaptaron dinámicamente el landing, los títulos de header del dashboard y el módulo clínico (notas vs. odontograma). El resto de las pantallas (Admin > Usuarios, listado de pacientes, lista de espera, formularios de creación, "Terapias Restantes", etc.) siguen diciendo literalmente "Psicólogo"/"Terapias" sin importar la especialidad real del centro. Funciona correctamente para cualquier especialidad, solo el copy no es específico — usar `professionalLabel()`/`specialtyLabel()` de `src/lib/specialty.ts` para ir reemplazando donde importe.
+- [ ] **Super Admin no puede eliminar centros ni desactivar profesionales/pacientes por límite de plan retroactivo:** Si un centro ya tiene más pacientes que el nuevo `maxPatients` de su plan, no pasa nada automáticamente (correcto: no se borra a nadie), pero tampoco hay ninguna alerta visible para el Super Admin de que el centro está "sobre el límite". El límite solo bloquea *crear* usuarios nuevos.
 
 ---
 
