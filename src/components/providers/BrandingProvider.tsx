@@ -18,9 +18,9 @@ export interface BrandingConfig {
 const DEFAULT_BRANDING: BrandingConfig = {
     name: "HealthSaaS",
     logoUrl: null,
-    primaryColor: "#24343B",
-    secondaryColor: "#EBA554",
-    tertiaryColor: "#948472",
+    primaryColor: "#1E5078",
+    secondaryColor: "#34B8A0",
+    tertiaryColor: "#3282B4",
     specialty: null,
     modules: null
 };

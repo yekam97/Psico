@@ -23,9 +23,9 @@ export async function GET() {
         return NextResponse.json({
             name: "HealthSaaS",
             logoUrl: null,
-            primaryColor: "#24343B",
-            secondaryColor: "#EBA554",
-            tertiaryColor: "#948472",
+            primaryColor: "#1E5078",
+            secondaryColor: "#34B8A0",
+            tertiaryColor: "#3282B4",
             specialty: null,
             modules: null
         });
@@ -50,9 +50,9 @@ export async function GET() {
             return NextResponse.json({
                 name: "HealthSaaS",
                 logoUrl: null,
-                primaryColor: "#24343B",
-                secondaryColor: "#EBA554",
-                tertiaryColor: "#948472",
+                primaryColor: "#1E5078",
+                secondaryColor: "#34B8A0",
+                tertiaryColor: "#3282B4",
                 specialty: null,
                 modules: null
             });
@@ -61,9 +61,9 @@ export async function GET() {
         return NextResponse.json({
             name: company.name,
             logoUrl: company.logoUrl || null,
-            primaryColor: company.primaryColor || "#24343B",
-            secondaryColor: company.secondaryColor || "#EBA554",
-            tertiaryColor: company.tertiaryColor || "#948472",
+            primaryColor: company.primaryColor || "#1E5078",
+            secondaryColor: company.secondaryColor || "#34B8A0",
+            tertiaryColor: company.tertiaryColor || "#3282B4",
             specialty: company.specialty || null,
             // null = no plan assigned = unlimited/all modules (see src/lib/specialty.ts hasModule)
             modules: company.plan?.modules ?? null
@@ -73,9 +73,9 @@ export async function GET() {
         return NextResponse.json({
             name: "HealthSaaS",
             logoUrl: null,
-            primaryColor: "#24343B",
-            secondaryColor: "#EBA554",
-            tertiaryColor: "#948472"
+            primaryColor: "#1E5078",
+            secondaryColor: "#34B8A0",
+            tertiaryColor: "#3282B4"
         });
     }
 }

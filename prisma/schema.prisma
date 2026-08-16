@@ -12,9 +12,9 @@ model Company {
   name            String
   domain          String         @unique
   logoUrl         String?
-  primaryColor    String         @default("#24343B")
-  secondaryColor  String         @default("#EBA554")
-  tertiaryColor   String         @default("#948472")
+  primaryColor    String         @default("#1E5078")
+  secondaryColor  String         @default("#34B8A0")
+  tertiaryColor   String         @default("#3282B4")
   businessHours   Json?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt

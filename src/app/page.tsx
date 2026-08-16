@@ -1,17 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import ContactForm from "@/components/landing/ContactForm";
 import {
   Calendar,
-  Search,
-  ShieldCheck,
   Video,
-  Users,
   FileText,
-  MessageSquare,
   Mail,
-  Phone
+  Phone,
+  CheckCircle2
 } from "lucide-react";
 
 export default function Home() {
@@ -51,14 +47,37 @@ export default function Home() {
             </div>
           </div>
           <div className="flex-1 relative animate-in fade-in slide-in-from-right-4 duration-700">
-            <div className="w-full aspect-square rounded-[4rem] overflow-hidden shadow-2xl skew-y-1 relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent z-10" />
-              <Image
-                src="/psychology_hero_light_abstract.png"
-                alt="HealthSaaS Dashboard Preview"
-                fill
-                className="object-cover"
-              />
+            <div className="w-full aspect-square rounded-[4rem] overflow-hidden shadow-2xl relative bg-gradient-to-br from-primary/5 via-white to-secondary/10 border border-gray-100">
+              {/* Abstract brand-gradient composition — no stock photography,
+                  just the mark itself on soft blurred color fields sampled
+                  from the logo's own gradient. */}
+              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-primary/20 blur-[70px]" />
+              <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full bg-secondary/25 blur-[80px]" />
+              <div className="absolute -bottom-20 left-1/4 w-64 h-64 rounded-full bg-tertiary/20 blur-[70px]" />
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img src="/brand/icon.png" alt="" className="w-2/5 h-2/5 object-contain drop-shadow-xl" />
+              </div>
+
+              <div className="absolute top-10 left-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-5 py-4 flex items-center gap-3 border border-white">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Citas hoy</p>
+                  <p className="text-lg font-bold text-gray-800 leading-none">24</p>
+                </div>
+              </div>
+
+              <div className="absolute bottom-12 right-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-5 py-4 flex items-center gap-3 border border-white">
+                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Sesión completada</p>
+                  <p className="text-sm font-bold text-gray-800 leading-none">Hace 2 min</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

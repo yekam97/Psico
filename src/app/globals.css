@@ -15,24 +15,33 @@
   document.documentElement via JS, instantly recoloring the entire UI for
   every company without a page reload.
 */
+/*
+  Platform brand palette — sampled directly from the HealthSaaS logo
+  (logo.jpg at repo root; derived crops in public/brand/). #1E5078 is the
+  logo's own wordmark navy; #34B8A0 and #3282B4 are pulled from its
+  blue → teal → green gradient shield. This is the *default* a new
+  Company gets (see Company.primaryColor/secondaryColor/tertiaryColor in
+  prisma/schema.prisma) — any tenant can still override their own via
+  Admin > Perfil, unrelated to this baseline.
+*/
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --color-primary: #24343B;
-  --color-primary-light: #3a4e58;
-  --color-primary-dark: #1a252a;
+  --color-primary: #1E5078;
+  --color-primary-light: #3284c8;
+  --color-primary-dark: #0e2639;
 
-  --color-secondary: #EBA554;
-  --color-secondary-light: #f1c187;
-  --color-secondary-dark: #cc8d42;
+  --color-secondary: #34B8A0;
+  --color-secondary-light: #78d9c7;
+  --color-secondary-dark: #237b6b;
 
-  --color-tertiary: #948472;
-  --color-tertiary-light: #b3a697;
-  --color-tertiary-dark: #7a6c5d;
+  --color-tertiary: #3282B4;
+  --color-tertiary-light: #73b2d9;
+  --color-tertiary-dark: #215778;
 
-  --color-sage: #948472;
-  --color-sage-dark: #7a6c5d;
+  --color-sage: #3282B4;
+  --color-sage-dark: #215778;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

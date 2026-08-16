@@ -1,6 +1,5 @@
 "use client";
 
-import { Activity } from "lucide-react";
 import Link from "next/link";
 
 interface LogoProps {
@@ -22,48 +21,40 @@ export default function Logo({
 }: LogoProps) {
     const isDark = theme === "dark";
     const primaryColor = isDark ? "text-white" : "text-primary";
-    const secondaryColor = "text-secondary";
+    const secondaryColor = isDark ? "text-secondary-light" : "text-secondary";
 
-    const GenericIcon = () => (
-        <div className={`relative flex items-center justify-center ${isDark ? "bg-white/5" : "bg-primary/5"} p-1 rounded-full`}>
-            {logoUrl ? (
-                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-100">
-                    <img src={logoUrl} alt={brandName} className="max-w-full max-h-full object-contain" />
-                </div>
-            ) : (
-                <div className={`w-10 h-10 rounded-full border border-current flex items-center justify-center relative ${primaryColor}`}>
-                    <Activity size={20} />
-                </div>
-            )}
-        </div>
+    // Own uploaded logo (Admin > Perfil): arbitrary aspect ratio, so it gets
+    // a neutral circular badge. No custom logo set: fall back to the
+    // HealthSaaS shield mark itself rather than a generic icon.
+    const Mark = () => (
+        logoUrl ? (
+            <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                <img src={logoUrl} alt={brandName} className="max-w-full max-h-full object-contain" />
+            </div>
+        ) : (
+            <img src="/brand/icon.png" alt={brandName} className="w-10 h-10 shrink-0 object-contain" />
+        )
     );
 
     if (variant === "isotipo") {
         return (
-            <Link href="/" className={`inline-flex items-center justify-center relative w-24 h-24 rounded-full border border-current ${primaryColor} ${className}`}>
-                <div className="absolute top-2 text-[8px] font-bold tracking-widest uppercase truncate max-w-[60px]">{brandName}</div>
-                <GenericIcon />
-                <div className="absolute bottom-2 text-[6px] font-medium tracking-tight uppercase max-w-[50px] text-center leading-[0.8]">
-                    {brandSubtitle}
-                </div>
+            <Link href="/" className={`inline-flex flex-col items-center justify-center gap-1 ${className}`}>
+                <Mark />
+                <div className={`text-[7px] font-bold tracking-widest uppercase truncate max-w-[70px] text-center ${primaryColor}`}>{brandName}</div>
             </Link>
         );
     }
 
     return (
         <Link href="/" className={`inline-flex items-center gap-3 ${className} group`}>
-            <GenericIcon />
+            <Mark />
             <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                    <span className={`text-2xl font-bold tracking-[0.05em] ${primaryColor} font-serif leading-none uppercase`}>
-                        {brandName}
-                    </span>
-                </div>
-                <div className={`flex items-center gap-1.5 ${secondaryColor}`}>
-                    <span className="text-[9px] font-bold tracking-[0.15em] uppercase whitespace-nowrap">
-                        {brandSubtitle}
-                    </span>
-                </div>
+                <span className={`text-xl font-extrabold tracking-tight ${primaryColor} leading-none`}>
+                    {brandName}
+                </span>
+                <span className={`text-[10px] font-semibold tracking-wide ${secondaryColor} whitespace-nowrap mt-0.5`}>
+                    {brandSubtitle}
+                </span>
             </div>
         </Link>
     );

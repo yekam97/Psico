@@ -4,6 +4,20 @@
 
 ---
 
+## Marca
+
+Paleta y logo derivados de `public/brand/source.jpg` (el logo original provisto por el equipo). Recortes ya generados a partir de ese original: `icon.png` (solo el ícono, para usar como marca en la app) y `logo-horizontal.png`/`logo-full.png` (lockup completo ícono+wordmark, como referencia/uso en marketing). Colores por defecto de la plataforma (`src/app/globals.css`, `BrandingProvider.tsx`, `src/app/api/branding/route.ts`, y el `@default` de `Company` en el schema — los cuatro puntos donde vive el mismo valor, mantenerlos en sync si se vuelve a cambiar):
+
+| Token | Hex | Origen |
+| --- | --- | --- |
+| `--color-primary` | `#1E5078` | Navy del wordmark "Health" del logo |
+| `--color-secondary` | `#34B8A0` | Verde-azulado del degradado del escudo |
+| `--color-tertiary` | `#3282B4` | Azul medio del degradado del escudo |
+
+Esto es el default de la **plataforma** — cualquier centro puede seguir personalizando los suyos desde Admin > Perfil sin que esto los sobreescriba (`Minerva Psicología` mantiene su propia paleta, elegida antes de este cambio). `src/components/Logo.tsx` usa `public/brand/icon.png` como ícono de respaldo cuando un centro no subió su propio logo; el nombre siempre se sigue renderizando como texto (no está "horneado" en la imagen) para que cada centro muestre su propio nombre.
+
+---
+
 ## Arquitectura
 
 ```text
@@ -269,6 +283,7 @@ Datos para login:
 
 ### ✅ Resuelto en esta sesión
 
+- ~~**Rediseño de marca con el logo real:**~~ Se reemplazó la paleta genérica y el ícono placeholder (círculo con un ícono de Lucide) por assets derivados del logo real (ver sección "Marca" arriba). Se limpiaron también los 5 SVG de ejemplo de `create-next-app` sin usar (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`), el `favicon.ico` genérico, y la imagen de stock `psychology_hero_light_abstract.png` del hero del landing (nombrada para el nicho viejo) — reemplazada por una composición abstracta con los colores de marca y el ícono, sin foto de stock. El `<title>`/metadata del sitio también decía literalmente "Create Next App" (boilerplate nunca actualizado); corregido.
 - ~~**"Terapias" seguía apareciendo en centros no-psicológicos:**~~ El barrido de terminología de la sesión anterior cubrió `professionalLabel()` pero no el concepto de "sesión/terapia" en sí — "Terapias Restantes", "Gestionar Terapias", "Historial de Terapias", mensajes de error de saldo, etc. seguían diciendo "terapia" para un centro de ortodoncia o cirugía. Se agregó `sessionLabel()` en `src/lib/specialty.ts` (Terapia/Terapias solo para psicología; Sesión/Sesiones, Consulta/Consultas o Procedimiento/Procedimientos para el resto) y se aplicó en Admin > Usuarios, dashboard admin, Admin > Terapias, la lista de pacientes del profesional, y los errores de saldo insuficiente de ambas rutas de citas. El modelo `TherapyInventory` y sus campos siguen llamándose así internamente — mismo criterio que con `PSYCHOLOGIST`: cambiar el nombre del dato es un refactor de schema, cambiar la palabra que ve el usuario no.
 - ~~**Nadie podía documentar una cita si el profesional no tiene acceso al portal:**~~ Vacío funcional real, no cosmético: en un plan sin `PORTAL_ACCESS`, el profesional asignado *nunca puede iniciar sesión*, y las rutas de notas/odontograma exigían la sesión de ese profesional exacto — es decir, ese paciente jamás podría tener una nota clínica. Se extendieron las tres rutas (notas, odontograma, optometría) para aceptar también al `ADMIN` del centro, atribuyendo el registro al profesional asignado (no al admin) — mismo patrón descrito en la sección de arriba. Se creó `/dashboard/admin/patients/[id]` (enlazado desde un botón nuevo en Admin > Usuarios) reutilizando el mismo componente `ClinicalDocumentationPanel` que ya usaba la vista del profesional.
 - ~~**Optometría agregada como especialidad, con su propio módulo clínico:**~~ No se limitó a agregar el nombre a la lista — un examen de optometría se documenta distinto a un diente (una fórmula completa por consulta, no clicks por unidad), así que se construyó `OptometryRecord`/`OptometryRecordPanel` con esa forma en vez de reusar el patrón del odontograma.
