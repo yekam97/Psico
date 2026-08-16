@@ -158,7 +158,11 @@ export default function DashboardLayout({
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-sm font-semibold text-gray-800 truncate">{session?.user?.name || "Usuario"}</p>
-                            <p className="text-xs text-gray-400 truncate capitalize">{userRole?.toLowerCase().replace("_", " ")}</p>
+                            <p className="text-xs text-gray-400 truncate capitalize">
+                                {userRole === "SUPER_ADMIN" ? "Super Admin" :
+                                    userRole === "ADMIN" ? "Admin" :
+                                        userRole === "PSYCHOLOGIST" ? professionalLabel(branding.specialty) : "Paciente"}
+                            </p>
                         </div>
                     </div>
                     <button
@@ -182,9 +186,9 @@ export default function DashboardLayout({
                             <Menu size={24} />
                         </button>
                         <h1 className="text-lg md:text-xl font-light text-gray-800 truncate">
-                            {pathname.includes("super-admin") ? "Panel de Plataforma" :
-                                pathname.includes("/admin") ? "Panel Administrativo" :
-                                    pathname.includes("psychologist") ? `Panel de ${professionalLabel(branding.specialty)}` : "Portal de Paciente"}
+                            {userRole === "SUPER_ADMIN" ? "Panel de Plataforma" :
+                                userRole === "ADMIN" ? "Panel Administrativo" :
+                                    userRole === "PSYCHOLOGIST" ? `Panel de ${professionalLabel(branding.specialty)}` : "Portal de Paciente"}
                         </h1>
                     </div>
                     <div className="hidden sm:block text-sm text-gray-400 font-mono">

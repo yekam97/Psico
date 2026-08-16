@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
+import { hasModule } from "@/lib/specialty";
 
 // Odontogram entries — same assignment/company guard pattern as clinical
 // notes (src/app/api/psychologist/notes/[patientId]/route.ts), just under a
@@ -60,6 +61,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     const companyId = (session.user as any).companyId;
 
     try {
+        const company = await (prisma.company as any).findUnique({
+            where: { id: companyId },
+            select: { plan: { select: { modules: true } } }
+        });
+
+        if (!hasModule(company?.plan?.modules ?? null, "ODONTOGRAM")) {
+            return NextResponse.json({ error: "Tu plan actual no incluye el módulo de Odontograma." }, { status: 403 });
+        }
+
         const assignment = await prisma.patientPsychologist.findFirst({
             where: { patientId, psychologistId: doctorId }
         });

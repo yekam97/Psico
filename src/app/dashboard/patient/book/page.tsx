@@ -15,6 +15,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { toLocalDateInputValue } from "@/lib/date-input";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { professionalLabel } from "@/lib/specialty";
 
 function getMinDate(): string {
     return toLocalDateInputValue(new Date());
@@ -34,6 +36,8 @@ function formatTimeSlot(time24: string): string {
 }
 
 export default function BookAppointmentPage() {
+    const { branding } = useBranding();
+    const proLabel = professionalLabel(branding.specialty);
     const [step, setStep] = useState(1);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
     const [modality, setModality] = useState<"VIRTUAL" | "IN_PERSON">("VIRTUAL");
@@ -54,7 +58,7 @@ export default function BookAppointmentPage() {
             setDoctors(response.data);
         } catch (error) {
             console.error("Error fetching psychologists:", error);
-            toast.error("Error al cargar psicólogos asignados");
+            toast.error(`Error al cargar ${proLabel.toLowerCase()}s asignados`);
         } finally {
             setLoading(false);
         }
@@ -113,7 +117,7 @@ export default function BookAppointmentPage() {
                 {step === 1 && (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-3xl font-light text-gray-800">Selecciona tu Psicólogo</h2>
+                            <h2 className="text-3xl font-light text-gray-800">Selecciona tu {proLabel}</h2>
                             <p className="text-gray-500 mt-2">Busca el profesional que mejor se adapte a tus necesidades.</p>
                         </div>
 
@@ -133,7 +137,7 @@ export default function BookAppointmentPage() {
                                 </div>
                             ) : doctors.length === 0 ? (
                                 <div className="col-span-full text-center py-20 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200">
-                                    <p className="text-gray-500">No tienes psicólogos asignados actualmente.</p>
+                                    <p className="text-gray-500">No tienes {proLabel.toLowerCase()}s asignados actualmente.</p>
                                     <p className="text-xs text-gray-400 mt-2">Contacta con administración para que te asignen un profesional.</p>
                                 </div>
                             ) : (

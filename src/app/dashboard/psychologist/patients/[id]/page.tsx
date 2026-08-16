@@ -20,8 +20,9 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useBranding } from "@/components/providers/BrandingProvider";
-import { isDentalSpecialty } from "@/lib/specialty";
+import { isDentalSpecialty, hasModule } from "@/lib/specialty";
 import Odontogram, { ToothRecordEntry } from "@/components/dental/Odontogram";
+import { Lock } from "lucide-react";
 
 interface PatientDetailProps {
     params: Promise<{ id: string }>;
@@ -31,6 +32,8 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
     const { id } = use(params);
     const { branding } = useBranding();
     const isDental = isDentalSpecialty(branding.specialty);
+    const hasOdontogramModule = hasModule(branding.modules, "ODONTOGRAM");
+    const showOdontogram = isDental && hasOdontogramModule;
     const [notes, setNotes] = useState<any[]>([]);
     const [toothRecords, setToothRecords] = useState<ToothRecordEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -43,7 +46,7 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
 
     useEffect(() => {
         fetchInitialData();
-    }, [id, isDental]);
+    }, [id, showOdontogram]);
 
     const fetchInitialData = async () => {
         setLoading(true);
@@ -52,7 +55,7 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
             const patientsRes = await axios.get("/api/psychologist/patients");
             setPatients(patientsRes.data);
 
-            if (isDental) {
+            if (showOdontogram) {
                 const toothRes = await axios.get(`/api/professional/tooth-records/${id}`);
                 setToothRecords(toothRes.data);
             } else {
@@ -161,12 +164,23 @@ export default function PatientDetailPage({ params }: PatientDetailProps) {
                 </div>
 
                 {/* Clinical Documentation Section — odontogram for dental/orthodontic
-                    centers, free-text notes for everyone else */}
+                    centers whose plan includes it, free-text notes for everyone else */}
                 <div className="lg:col-span-2 space-y-8">
-                    {isDental ? (
+                    {showOdontogram ? (
                         <Odontogram records={toothRecords} onAddRecord={handleAddToothRecord} />
                     ) : (
                         <>
+                            {isDental && (
+                                <div className="flex items-center gap-4 p-6 bg-secondary/10 border border-secondary/20 rounded-[2rem]">
+                                    <div className="p-3 bg-secondary/20 rounded-2xl text-secondary-dark shrink-0">
+                                        <Lock size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-800">El Odontograma no está incluido en tu plan actual</p>
+                                        <p className="text-xs text-gray-500 mt-1">Mientras tanto puedes seguir documentando las sesiones con notas de texto. Contacta a la plataforma para actualizar tu plan.</p>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex items-center gap-3">
                                 <div className="p-3 bg-primary/10 rounded-2xl text-primary">
                                     <StickyNote size={24} />

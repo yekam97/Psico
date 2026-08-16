@@ -45,6 +45,17 @@ export function isDentalSpecialty(specialty?: string | null): boolean {
     return !!specialty && DENTAL_SPECIALTIES.includes(specialty as Specialty);
 }
 
+/**
+ * Whether a company's plan includes a given module (e.g. "ODONTOGRAM").
+ * `modules === null` means the company has no plan assigned, which is
+ * deliberately treated as unlimited/all-modules (see src/lib/specialty.ts
+ * usage in the branding route) so existing companies aren't broken by
+ * introducing the plan system.
+ */
+export function hasModule(modules: string[] | null | undefined, moduleKey: string): boolean {
+    return modules === null || modules === undefined || modules.includes(moduleKey);
+}
+
 export function specialtyLabel(specialty?: string | null): string {
     if (!specialty) return "Salud";
     return SPECIALTY_LABELS[specialty as Specialty] || specialty;

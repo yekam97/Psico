@@ -26,7 +26,8 @@ export async function GET() {
             primaryColor: "#24343B",
             secondaryColor: "#EBA554",
             tertiaryColor: "#948472",
-            specialty: null
+            specialty: null,
+            modules: null
         });
     }
 
@@ -40,7 +41,8 @@ export async function GET() {
                 primaryColor: true,
                 secondaryColor: true,
                 tertiaryColor: true,
-                specialty: true
+                specialty: true,
+                plan: { select: { modules: true } }
             }
         });
 
@@ -51,7 +53,8 @@ export async function GET() {
                 primaryColor: "#24343B",
                 secondaryColor: "#EBA554",
                 tertiaryColor: "#948472",
-                specialty: null
+                specialty: null,
+                modules: null
             });
         }
 
@@ -61,7 +64,9 @@ export async function GET() {
             primaryColor: company.primaryColor || "#24343B",
             secondaryColor: company.secondaryColor || "#EBA554",
             tertiaryColor: company.tertiaryColor || "#948472",
-            specialty: company.specialty || null
+            specialty: company.specialty || null,
+            // null = no plan assigned = unlimited/all modules (see src/lib/specialty.ts hasModule)
+            modules: company.plan?.modules ?? null
         });
     } catch (error) {
         console.error("Error fetching branding:", error);

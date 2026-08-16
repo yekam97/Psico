@@ -6,6 +6,7 @@ import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
 import { parseClinicDateTime } from "@/lib/timezone";
+import { professionalLabel } from "@/lib/specialty";
 
 const TIMEZONE = "America/Bogota";
 
@@ -25,6 +26,12 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+        const company = await (prisma.company as any).findUnique({
+            where: { id: companyId },
+            select: { specialty: true }
+        });
+        const proLabel = professionalLabel(company?.specialty);
+
         // Enforce that the patient has therapy inventory before letting them book
         // (mirrors the same check on the admin booking route).
         const inventory = await (prisma as any).therapyInventory.findUnique({
@@ -57,7 +64,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (overlappingPsychologistAppt) {
-            return NextResponse.json({ error: "El psicólogo ya tiene una cita programada en ese horario." }, { status: 400 });
+            return NextResponse.json({ error: `El ${proLabel.toLowerCase()} ya tiene una cita programada en ese horario.` }, { status: 400 });
         }
 
         // Room Availability Check for IN_PERSON appointments
@@ -127,7 +134,7 @@ export async function POST(req: NextRequest) {
 
             const { eventId, meetingLink } = await createGoogleCalendarEvent({
                 title: `Sesión: ${patient.user.name} - ${psychologist.user.name}`,
-                description: `Cita ${typeLabel}\nPaciente: ${patient.user.name}\nPsicólogo: ${psychologist.user.name}\nFecha: ${dateStr}${notes ? `\nNotas: ${notes}` : ""}`,
+                description: `Cita ${typeLabel}\nPaciente: ${patient.user.name}\n${proLabel}: ${psychologist.user.name}\nFecha: ${dateStr}${notes ? `\nNotas: ${notes}` : ""}`,
                 startTime: start,
                 endTime: end,
                 attendeeEmails,

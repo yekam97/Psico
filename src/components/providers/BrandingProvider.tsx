@@ -11,6 +11,8 @@ export interface BrandingConfig {
     secondaryColor: string;
     tertiaryColor: string;
     specialty: string | null;
+    // null = no plan assigned = unlimited/all modules (see src/lib/specialty.ts hasModule)
+    modules: string[] | null;
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
@@ -19,7 +21,8 @@ const DEFAULT_BRANDING: BrandingConfig = {
     primaryColor: "#24343B",
     secondaryColor: "#EBA554",
     tertiaryColor: "#948472",
-    specialty: null
+    specialty: null,
+    modules: null
 };
 
 const BrandingContext = createContext<{
@@ -44,19 +47,30 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
                 primaryColor: data.primaryColor || DEFAULT_BRANDING.primaryColor,
                 secondaryColor: data.secondaryColor || DEFAULT_BRANDING.secondaryColor,
                 tertiaryColor: data.tertiaryColor || DEFAULT_BRANDING.tertiaryColor,
-                specialty: data.specialty || null
+                specialty: data.specialty || null,
+                modules: data.modules === null ? null : (Array.isArray(data.modules) ? data.modules : null)
             });
         } catch (e) {
             console.warn("Could not fetch company branding, using defaults.", e);
         }
     };
 
-    // Fetch when session is ready
+    // Fetch whenever the *actual identified account* changes, not just the
+    // coarse auth status. `status` alone stays "authenticated" if one user
+    // logs in right after another without an intermediate "unauthenticated"
+    // tick (e.g. signing into a different company's account in the same
+    // tab) — depending only on `status` left this branding stuck showing
+    // the *previous* user's company (wrong name/logo/colors/specialty)
+    // until a full page reload. companyId is what branding is actually
+    // scoped by, so key the refetch on that.
+    const companyId = (session?.user as any)?.companyId;
     useEffect(() => {
         if (status === "authenticated") {
             fetchBranding();
+        } else if (status === "unauthenticated") {
+            setBranding(DEFAULT_BRANDING);
         }
-    }, [status]);
+    }, [status, companyId]);
 
     // Apply CSS variables to :root on every branding change
     useEffect(() => {

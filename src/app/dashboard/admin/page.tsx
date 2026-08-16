@@ -29,9 +29,13 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { professionalLabel } from "@/lib/specialty";
 
 export default function AdminDashboard() {
     const { data: session } = useSession();
+    const { branding } = useBranding();
+    const proLabel = professionalLabel(branding.specialty);
     const [stats, setStats] = useState<any>(null);
     const [reports, setReports] = useState<any>(null);
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
@@ -189,7 +193,7 @@ export default function AdminDashboard() {
                         <div className="space-y-3">
                             <Link href="/dashboard/admin/users" className="block p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
                                 <p className="font-bold text-sm">Gestionar Usuarios</p>
-                                <p className="text-xs text-white/40">Crear, editar o eliminar psicólogos y pacientes.</p>
+                                <p className="text-xs text-white/40">Crear, editar o eliminar {proLabel.toLowerCase()}s y pacientes.</p>
                             </Link>
                             <Link href="/dashboard/profile" className="block p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
                                 <p className="font-bold text-sm">Configuración de Branding</p>
@@ -274,7 +278,7 @@ export default function AdminDashboard() {
                                 <thead>
                                     <tr className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
                                         <th className="px-8 py-4 font-medium">Paciente</th>
-                                        <th className="px-8 py-4 font-medium">Psicólogo</th>
+                                        <th className="px-8 py-4 font-medium">{proLabel}</th>
                                         <th className="px-8 py-4 font-medium">Fecha</th>
                                         <th className="px-8 py-4 font-medium">Motivo</th>
                                     </tr>
@@ -301,7 +305,7 @@ export default function AdminDashboard() {
                                         <p className="font-bold text-gray-800 text-sm">{c.patient}</p>
                                         <span className="text-[10px] text-gray-400">{format(new Date(c.date), "d MMM, HH:mm", { locale: es })}</span>
                                     </div>
-                                    <p className="text-xs text-gray-500">Psicólogo: {c.psychologist}</p>
+                                    <p className="text-xs text-gray-500">{proLabel}: {c.psychologist}</p>
                                     <p className="text-xs italic text-red-500 border-t border-red-100 pt-2 mt-2">Motivo: "{c.reason}"</p>
                                 </div>
                             ))}

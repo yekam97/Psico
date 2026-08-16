@@ -138,7 +138,7 @@ export default function SuperAdminCompaniesPage() {
                                 <div className="bg-gray-50 rounded-2xl py-3">
                                     <Users size={16} className="mx-auto text-gray-400 mb-1" />
                                     <p className="text-lg font-bold text-gray-800">{c.counts.professionals}</p>
-                                    <p className="text-[10px] text-gray-400 uppercase">Profesionales</p>
+                                    <p className="text-[10px] text-gray-400 uppercase truncate">Prof.</p>
                                 </div>
                                 <div className="bg-gray-50 rounded-2xl py-3">
                                     <Ticket size={16} className="mx-auto text-gray-400 mb-1" />

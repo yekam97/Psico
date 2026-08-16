@@ -23,6 +23,8 @@ import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Users as UsersIcon } from "lucide-react";
 import { toLocalDateInputValue } from "@/lib/date-input";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { professionalLabel } from "@/lib/specialty";
 
 interface UserProfile {
     id: string;
@@ -49,6 +51,8 @@ interface User {
 }
 
 export default function AdminUsersPage() {
+    const { branding } = useBranding();
+    const proLabel = professionalLabel(branding.specialty);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -322,7 +326,7 @@ export default function AdminUsersPage() {
                                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${roleFilter === r ? "bg-primary text-white" : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                                     }`}
                             >
-                                {r === "ALL" ? "Todos" : r === "PSYCHOLOGIST" ? "Psicólogos" : r === "PATIENT" ? "Pacientes" : "Admins"}
+                                {r === "ALL" ? "Todos" : r === "PSYCHOLOGIST" ? `${proLabel}s` : r === "PATIENT" ? "Pacientes" : "Admins"}
                             </button>
                         ))}
                     </div>
@@ -607,14 +611,14 @@ export default function AdminUsersPage() {
                                             onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                                         >
                                             <option value="PATIENT">Paciente</option>
-                                            <option value="PSYCHOLOGIST">Psicólogo</option>
+                                            <option value="PSYCHOLOGIST">{proLabel}</option>
                                             <option value="ADMIN">Administrador</option>
                                         </select>
                                     </div>
 
                                     {formData.role === "PATIENT" && (
                                         <div>
-                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Asignar Psicólogos (Máx 2)</label>
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Asignar {proLabel}s (Máx 2)</label>
                                             <div className="space-y-2 max-h-40 overflow-y-auto p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                                 {psychologists.map(p => (
                                                     <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer group">
@@ -635,7 +639,7 @@ export default function AdminUsersPage() {
                                                         <span className="text-sm text-gray-700 group-hover:text-primary font-medium">{p.name || p.email}</span>
                                                     </label>
                                                 ))}
-                                                {psychologists.length === 0 && <p className="text-xs text-gray-400">No hay psicólogos registrados</p>}
+                                                {psychologists.length === 0 && <p className="text-xs text-gray-400">No hay {proLabel.toLowerCase()}s registrados</p>}
                                             </div>
                                         </div>
                                     )}
@@ -727,7 +731,7 @@ export default function AdminUsersPage() {
                             </div>
                             <form onSubmit={handleBookingSubmit} className="p-8 space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Seleccionar Psicólogo</label>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Seleccionar {proLabel}</label>
                                     <select
                                         required
                                         className="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:bg-white focus:border-primary/20 outline-none transition-all appearance-none"
@@ -762,7 +766,7 @@ export default function AdminUsersPage() {
                                             </div>
                                         ) : !bookingData.psychologistId ? (
                                             <div className="flex items-center justify-center h-[56px] bg-gray-50 rounded-2xl text-xs text-gray-400">
-                                                Seleccione psicólogo
+                                                Seleccione {proLabel.toLowerCase()}
                                             </div>
                                         ) : noAvailability ? (
                                             <div className="flex items-center justify-center h-[56px] bg-red-50 rounded-2xl text-xs text-red-500">
