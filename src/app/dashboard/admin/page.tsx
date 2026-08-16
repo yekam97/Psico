@@ -30,12 +30,13 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { useBranding } from "@/components/providers/BrandingProvider";
-import { professionalLabel } from "@/lib/specialty";
+import { professionalLabel, sessionLabel } from "@/lib/specialty";
 
 export default function AdminDashboard() {
     const { data: session } = useSession();
     const { branding } = useBranding();
     const proLabel = professionalLabel(branding.specialty);
+    const sessionsLabel = sessionLabel(branding.specialty);
     const [stats, setStats] = useState<any>(null);
     const [reports, setReports] = useState<any>(null);
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
@@ -200,7 +201,7 @@ export default function AdminDashboard() {
                                 <p className="text-xs text-white/40">Actualiza el logo y colores de tu centro.</p>
                             </Link>
                             <Link href="/dashboard/admin/therapy" className="block p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
-                                <p className="font-bold text-sm">Gestionar Terapias</p>
+                                <p className="font-bold text-sm">Gestionar {sessionsLabel}</p>
                                 <p className="text-xs text-white/40">Asigna sesiones a pacientes.</p>
                             </Link>
                         </div>

@@ -6,7 +6,7 @@ import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
 import { parseClinicDateTime } from "@/lib/timezone";
-import { professionalLabel } from "@/lib/specialty";
+import { professionalLabel, sessionLabel } from "@/lib/specialty";
 
 const TIMEZONE = "America/Bogota";
 
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
             select: { specialty: true }
         });
         const proLabel = professionalLabel(company?.specialty);
+        const sessionsLabel = sessionLabel(company?.specialty);
 
         // Enforce that the patient has therapy inventory before letting them book
         // (mirrors the same check on the admin booking route).
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!inventory || inventory.remaining <= 0) {
-            return NextResponse.json({ error: "No tienes sesiones disponibles. Contacta a tu centro para recargar tu saldo de terapias." }, { status: 400 });
+            return NextResponse.json({ error: `No tienes ${sessionsLabel.toLowerCase()} disponibles. Contacta a tu centro para recargar tu saldo.` }, { status: 400 });
         }
 
         const start = parseClinicDateTime(startTime);

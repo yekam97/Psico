@@ -7,16 +7,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ n
     const session = await getServerSession(authOptions);
     const { noteId } = await params;
 
-    if (!session || (session.user as any).role !== "PSYCHOLOGIST") {
+    const role = (session?.user as any)?.role;
+    if (!session || (role !== "PSYCHOLOGIST" && role !== "ADMIN")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const psychologistId = (session.user as any).profileId;
     const companyId = (session.user as any).companyId;
 
     try {
+        // Admin can delete any note written for a patient in their company
+        // (including ones written on behalf of a portal-less professional);
+        // a professional can only delete their own.
         const note = await (prisma as any).clinicalNote.findFirst({
-            where: { id: noteId, psychologistId, companyId }
+            where: role === "ADMIN"
+                ? { id: noteId, companyId }
+                : { id: noteId, psychologistId: (session.user as any).profileId, companyId }
         });
 
         if (!note) {

@@ -15,8 +15,10 @@ import {
     Trash2,
     Edit2,
     Activity,
-    CalendarCheck
+    CalendarCheck,
+    StickyNote
 } from "lucide-react";
+import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
 import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
@@ -24,7 +26,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Users as UsersIcon } from "lucide-react";
 import { toLocalDateInputValue } from "@/lib/date-input";
 import { useBranding } from "@/components/providers/BrandingProvider";
-import { professionalLabel, hasModule, PLAN_MODULES } from "@/lib/specialty";
+import { professionalLabel, sessionLabel, hasModule, PLAN_MODULES } from "@/lib/specialty";
 
 interface UserProfile {
     id: string;
@@ -54,6 +56,7 @@ interface User {
 export default function AdminUsersPage() {
     const { branding } = useBranding();
     const proLabel = professionalLabel(branding.specialty);
+    const sessionsLabel = sessionLabel(branding.specialty);
     const hasPortalAccessModule = hasModule(branding.modules, PLAN_MODULES.PORTAL_ACCESS);
     const roleLabel = (role: User["role"]) => role === "ADMIN" ? "Admin" : role === "PSYCHOLOGIST" ? proLabel : "Paciente";
     const [users, setUsers] = useState<User[]>([]);
@@ -384,7 +387,7 @@ export default function AdminUsersPage() {
                                                 <div className="text-xs text-gray-500 space-y-1">
                                                     {user.profile?.phone && <p className="flex items-center gap-1"><Phone size={12} /> {user.profile.phone}</p>}
                                                     {user.role === "PATIENT" && user.profile?.therapyInventory && (
-                                                        <p className="text-primary font-bold">Terapias: {user.profile.therapyInventory.remaining}</p>
+                                                        <p className="text-primary font-bold">{sessionsLabel}: {user.profile.therapyInventory.remaining}</p>
                                                     )}
                                                     {user.role === "PATIENT" && user.profile?.assignedPsychologists && user.profile.assignedPsychologists.length > 0 && (
                                                         <p className="text-[10px] italic">Asignado a: {user.profile.assignedPsychologists.map(a => a.psychologist.user.name).join(", ")}</p>
@@ -426,10 +429,17 @@ export default function AdminUsersPage() {
                                                                     setIsTherapyModalOpen(true);
                                                                 }}
                                                                 className="text-gray-400 hover:text-secondary transition-colors p-2"
-                                                                title="Gestionar Terapias"
+                                                                title={`Gestionar ${sessionsLabel}`}
                                                             >
                                                                 <Activity size={18} />
                                                             </button>
+                                                            <Link
+                                                                href={`/dashboard/admin/patients/${user.profile?.id}`}
+                                                                className="text-gray-400 hover:text-primary transition-colors p-2"
+                                                                title="Notas Clínicas"
+                                                            >
+                                                                <StickyNote size={18} />
+                                                            </Link>
                                                         </>
                                                     )}
                                                     <button
@@ -484,7 +494,7 @@ export default function AdminUsersPage() {
 
                                         {user.role === "PATIENT" && user.profile?.therapyInventory && (
                                             <div className="flex justify-between items-center bg-white p-3 rounded-2xl border border-gray-100">
-                                                <span className="text-xs font-bold text-gray-400 uppercase">Terapias</span>
+                                                <span className="text-xs font-bold text-gray-400 uppercase">{sessionsLabel}</span>
                                                 <span className="text-primary font-bold">{user.profile.therapyInventory.remaining} Saldo</span>
                                             </div>
                                         )}
@@ -494,7 +504,8 @@ export default function AdminUsersPage() {
                                                 <>
                                                     <button onClick={() => { setEditingUser(user); setBookingData(prev => ({ ...prev, psychologistId: user.profile?.assignedPsychologists?.[0]?.psychologistId || "" })); setIsBookingModalOpen(true); setIsHistoryModalOpen(false); }} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-green-500 transition-colors p-3 rounded-xl" title="Agendar"><CalendarCheck size={18} /></button>
                                                     <button onClick={() => { setEditingUser(user); handleHistoryOpen(user.profile?.id!); }} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-primary transition-colors p-3 rounded-xl" title="Historial"><CalendarIcon size={18} /></button>
-                                                    <button onClick={() => { setEditingUser(user); setIsTherapyModalOpen(true); }} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-secondary transition-colors p-3 rounded-xl" title="Terapias"><Activity size={18} /></button>
+                                                    <button onClick={() => { setEditingUser(user); setIsTherapyModalOpen(true); }} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-secondary transition-colors p-3 rounded-xl" title={sessionsLabel}><Activity size={18} /></button>
+                                                    <Link href={`/dashboard/admin/patients/${user.profile?.id}`} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-primary transition-colors p-3 rounded-xl" title="Notas Clínicas"><StickyNote size={18} /></Link>
                                                 </>
                                             )}
                                             <button onClick={() => handleOpenModal(user)} className="bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-primary transition-colors p-3 rounded-xl" title="Editar"><Edit2 size={18} /></button>
@@ -524,7 +535,7 @@ export default function AdminUsersPage() {
                         <div className="bg-white w-full min-w-0 max-w-md h-full shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-800">Historial de Terapias</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">Historial de {sessionsLabel}</h3>
                                     <p className="text-xs text-gray-500">{editingUser.name}</p>
                                 </div>
                                 <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -693,7 +704,7 @@ export default function AdminUsersPage() {
                         <div className="bg-white rounded-[3rem] w-full min-w-0 max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-secondary/5">
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-800">Gestionar Terapias</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">Gestionar {sessionsLabel}</h3>
                                     <p className="text-xs text-gray-500">{editingUser.name}</p>
                                 </div>
                                 <button onClick={() => setIsTherapyModalOpen(false)} className="text-gray-400 hover:text-gray-600">

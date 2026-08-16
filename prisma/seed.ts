@@ -14,7 +14,7 @@ async function seedPlatformDefaults() {
         // (User.portalAccess is forced false — see /api/admin/users).
         { name: "Básico", maxPatients: 50, maxProfessionals: 3, modules: [] as string[] },
         { name: "Intermedio", maxPatients: 300, maxProfessionals: 15, modules: ["PORTAL_ACCESS"] },
-        { name: "Pro", maxPatients: null, maxProfessionals: null, modules: ["PORTAL_ACCESS", "ODONTOGRAM", "CHAT"] },
+        { name: "Pro", maxPatients: null, maxProfessionals: null, modules: ["PORTAL_ACCESS", "ODONTOGRAM", "OPTOMETRY_RECORD", "CHAT"] },
     ];
     for (const plan of plans) {
         await prisma.plan.upsert({

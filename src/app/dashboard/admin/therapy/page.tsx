@@ -18,6 +18,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { sessionLabel } from "@/lib/specialty";
 
 interface PatientTherapy {
     id: string;
@@ -32,6 +34,8 @@ interface PatientTherapy {
 }
 
 export default function AdminTherapyPage() {
+    const { branding } = useBranding();
+    const sessionsLabel = sessionLabel(branding.specialty);
     const [patients, setPatients] = useState<PatientTherapy[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -84,7 +88,7 @@ export default function AdminTherapyPage() {
         <div className="max-w-7xl animate-in fade-in duration-500 pb-20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                 <div>
-                    <h2 className="text-3xl font-light text-gray-800">Gestión de Terapias</h2>
+                    <h2 className="text-3xl font-light text-gray-800">Gestión de {sessionsLabel}</h2>
                     <p className="text-gray-500 mt-1">Control de saldos, recargas y asignación de sesiones para pacientes.</p>
                 </div>
             </div>

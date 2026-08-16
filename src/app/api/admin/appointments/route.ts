@@ -6,7 +6,7 @@ import { createGoogleCalendarEvent } from "@/lib/google-calendar";
 import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
 import { parseClinicDateTime } from "@/lib/timezone";
-import { professionalLabel } from "@/lib/specialty";
+import { professionalLabel, sessionLabel } from "@/lib/specialty";
 
 const TIMEZONE = "America/Bogota";
 
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
             select: { specialty: true, physicalRooms: true }
         });
         const proLabel = professionalLabel(company?.specialty);
+        const sessionsLabel = sessionLabel(company?.specialty);
 
         // Enforce that the user has therapy inventory
         const inventory = await (prisma as any).therapyInventory.findUnique({
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!inventory || inventory.remaining <= 0) {
-            return NextResponse.json({ error: "El paciente no tiene saldo de terapias disponible." }, { status: 400 });
+            return NextResponse.json({ error: `El paciente no tiene saldo de ${sessionsLabel.toLowerCase()} disponible.` }, { status: 400 });
         }
 
         const start = parseClinicDateTime(startTime);

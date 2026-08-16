@@ -28,6 +28,7 @@ model Company {
   users           User[]
   waitlistEntries Waitlist[]
   toothRecords    ToothRecord[]
+  optometryRecords OptometryRecord[]
   plan            Plan?          @relation(fields: [planId], references: [id])
 }
 
@@ -88,6 +89,8 @@ model Profile {
   waitlistEntries       Waitlist[]
   patientToothRecords   ToothRecord[]         @relation("PatientToothRecords")
   doctorToothRecords    ToothRecord[]         @relation("DoctorToothRecords")
+  patientOptometryRecords OptometryRecord[]   @relation("PatientOptometryRecords")
+  doctorOptometryRecords  OptometryRecord[]   @relation("DoctorOptometryRecords")
 }
 
 model PatientPsychologist {
@@ -120,6 +123,7 @@ model Appointment {
   patient            Profile           @relation("PatientAppointments", fields: [patientId], references: [id])
   psychologist       Profile           @relation("DoctorAppointments", fields: [psychologistId], references: [id])
   toothRecords       ToothRecord[]
+  optometryRecords   OptometryRecord[]
 }
 
 model TherapyInventory {
@@ -189,6 +193,33 @@ model ToothRecord {
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 }
 
+// One entry per exam for OPTOMETRY companies — holistic per-visit refraction
+// record (both eyes at once) rather than per-unit like ToothRecord, since
+// that's how an optometry exam is actually structured. Deliberately simple
+// (v1, same spirit as ToothRecord): sphere/cylinder/axis/visual acuity per
+// eye plus free text, no ICD codes or full clinical refraction workflow.
+model OptometryRecord {
+  id             String       @id @default(cuid())
+  companyId      String
+  patientId      String
+  doctorId       String
+  odSphere       String?
+  odCylinder     String?
+  odAxis         String?
+  odVisualAcuity String?
+  osSphere       String?
+  osCylinder     String?
+  osAxis         String?
+  osVisualAcuity String?
+  notes          String?
+  appointmentId  String?
+  createdAt      DateTime     @default(now())
+  company        Company      @relation(fields: [companyId], references: [id])
+  patient        Profile      @relation("PatientOptometryRecords", fields: [patientId], references: [id])
+  doctor         Profile      @relation("DoctorOptometryRecords", fields: [doctorId], references: [id])
+  appointment    Appointment? @relation(fields: [appointmentId], references: [id])
+}
+
 model Waitlist {
   id             String    @id @default(cuid())
   companyId      String
@@ -242,6 +273,7 @@ enum Specialty {
   ANESTHESIOLOGY
   GYNECOLOGY_OBSTETRICS
   GENERAL_SURGERY
+  OPTOMETRY
 }
 
 enum AppointmentStatus {

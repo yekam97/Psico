@@ -17,8 +17,12 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { TableSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { useBranding } from "@/components/providers/BrandingProvider";
+import { sessionLabel } from "@/lib/specialty";
 
 export default function PsychologistPatientsPage() {
+    const { branding } = useBranding();
+    const sessionsLabel = sessionLabel(branding.specialty);
     const [patients, setPatients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -85,7 +89,7 @@ export default function PsychologistPatientsPage() {
                                 <tr className="border-b border-gray-50">
                                     <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Paciente</th>
                                     <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Contacto</th>
-                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Saldo Terapia</th>
+                                    <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase">Saldo {sessionsLabel}</th>
                                     <th className="px-6 py-4 font-medium text-gray-400 text-xs uppercase font-bold text-right">Última Cita</th>
                                 </tr>
                             </thead>

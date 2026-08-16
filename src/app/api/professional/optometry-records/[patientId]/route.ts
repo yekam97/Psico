@@ -4,12 +4,10 @@ import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
 import { hasModule, PLAN_MODULES } from "@/lib/specialty";
 
-// Odontogram entries — same assignment/company guard pattern as clinical
-// notes (src/app/api/psychologist/notes/[patientId]/route.ts), just under a
-// specialty-neutral path since any PSYCHOLOGIST-role professional at a
-// dental/orthodontic company can use it, not only psychologists. ADMIN can
-// also read/write on behalf of a professional without portal access (see
-// User.portalAccess) — same reasoning as the clinical notes route.
+// Optometry refraction records — same shape/auth pattern as tooth-records
+// (src/app/api/professional/tooth-records/[patientId]/route.ts): the
+// assigned professional or the center's admin (on behalf of a professional
+// without portal access) can read/write.
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ patientId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -40,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ pati
             }
         }
 
-        const records = await prisma.toothRecord.findMany({
+        const records = await (prisma as any).optometryRecord.findMany({
             where: { patientId, companyId },
             include: {
                 doctor: { include: { user: { select: { name: true } } } }
@@ -50,23 +48,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ pati
 
         return NextResponse.json(records);
     } catch (error) {
-        console.error("Error fetching tooth records:", error);
-        return NextResponse.json({ error: "Error fetching tooth records" }, { status: 500 });
+        console.error("Error fetching optometry records:", error);
+        return NextResponse.json({ error: "Error fetching optometry records" }, { status: 500 });
     }
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ patientId: string }> }) {
     const session = await getServerSession(authOptions);
     const { patientId } = await params;
-    const { toothNumber, procedure, appointmentId, psychologistId: attributedToId } = await req.json();
+    const body = await req.json();
+    const { psychologistId: attributedToId, appointmentId, notes, ...refraction } = body;
     const role = (session?.user as any)?.role;
 
     if (!session || (role !== "PSYCHOLOGIST" && role !== "ADMIN")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!toothNumber || !procedure?.trim()) {
-        return NextResponse.json({ error: "Falta el diente o la descripción del procedimiento" }, { status: 400 });
+    const hasAnyValue = ["odSphere", "odCylinder", "odAxis", "odVisualAcuity", "osSphere", "osCylinder", "osAxis", "osVisualAcuity"]
+        .some((k) => refraction[k]?.toString().trim());
+    if (!hasAnyValue && !notes?.trim()) {
+        return NextResponse.json({ error: "Registra al menos un valor de la fórmula o una nota" }, { status: 400 });
     }
 
     const companyId = (session.user as any).companyId;
@@ -78,8 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
             select: { plan: { select: { modules: true } } }
         });
 
-        if (!hasModule(company?.plan?.modules ?? null, PLAN_MODULES.ODONTOGRAM)) {
-            return NextResponse.json({ error: "Tu plan actual no incluye el módulo de Odontograma." }, { status: 403 });
+        if (!hasModule(company?.plan?.modules ?? null, PLAN_MODULES.OPTOMETRY_RECORD)) {
+            return NextResponse.json({ error: "Tu plan actual no incluye el módulo de Registro de Optometría." }, { status: 403 });
         }
 
         if (role === "PSYCHOLOGIST") {
@@ -104,20 +105,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
             doctorId = attributedToId;
         }
 
-        const record = await prisma.toothRecord.create({
+        const record = await (prisma as any).optometryRecord.create({
             data: {
                 patientId,
                 doctorId,
                 companyId,
-                toothNumber: Number(toothNumber),
-                procedure: procedure.trim(),
-                appointmentId: appointmentId || null
+                appointmentId: appointmentId || null,
+                notes: notes || null,
+                odSphere: refraction.odSphere || null,
+                odCylinder: refraction.odCylinder || null,
+                odAxis: refraction.odAxis || null,
+                odVisualAcuity: refraction.odVisualAcuity || null,
+                osSphere: refraction.osSphere || null,
+                osCylinder: refraction.osCylinder || null,
+                osAxis: refraction.osAxis || null,
+                osVisualAcuity: refraction.osVisualAcuity || null
             }
         });
 
         return NextResponse.json(record);
     } catch (error) {
-        console.error("Error creating tooth record:", error);
-        return NextResponse.json({ error: "Error creating tooth record" }, { status: 500 });
+        console.error("Error creating optometry record:", error);
+        return NextResponse.json({ error: "Error creating optometry record" }, { status: 500 });
     }
 }
